@@ -3,12 +3,12 @@ WORKDIR /react-app
 COPY package.json  .
 COPY package-lock.json .
 RUN npm install
-COPY . ./
+COPY . .
 CMD [ "npm","run","build" ]  
 
 #
 FROM nginx:1.23-alpine
-# WORKDIR /usr/share/nginx/html
+WORKDIR /usr/share/nginx/html
 RUN rm -rf *
 COPY --from=react /react-app/build /usr/share/nginx/html
 
