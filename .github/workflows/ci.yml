@@ -36,7 +36,7 @@ jobs:
       run: |
           echo "Waiting for services to be ready..."
           for i in {1..30}; do
-          curl -f http://localhost:3000 && break || sleep 10
+            curl -f http://localhost:3000 && break || sleep 10
           done
 
     - name: Run service
