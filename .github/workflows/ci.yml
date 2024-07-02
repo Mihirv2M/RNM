@@ -1,0 +1,49 @@
+name: CI/CD for React-Node-Mongo Project
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Set up Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
+
+    - name: Build and run services
+      env:
+        MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+        MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+      run: |
+        docker compose up -d --build
+        # docker-compose up -d
+    
+    - name: Wait for services to be ready
+      run: |
+          echo "Waiting for services to be ready..."
+          for i in {1..30}; do
+          curl -f http://localhost:3000 && break || sleep 10
+          done
+
+    - name: Run service
+      run: |
+          curl -f http://localhost:3000 || exit 1
+  
+
+    - name: Tear down services
+      if: always()
+      run: docker compose down
