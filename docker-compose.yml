@@ -44,14 +44,14 @@ services:
       - mongodb_network
   
 
-  nginx:
-    image: nginx
-    ports:
-      - 80:80
-    volumes:
-        - ./nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-     - react-app
+  # nginx:
+  #   image: nginx
+  #   ports:
+  #     - 80:80
+  #   volumes:
+  #       - ./nginx.conf:/etc/nginx/nginx.conf
+  #   depends_on:
+  #    - react-app
 
 volumes:
   mongodb:
