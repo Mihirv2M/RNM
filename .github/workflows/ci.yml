@@ -33,6 +33,6 @@ jobs:
       # - name: List Running Containers
       #   run: docker ps
         
-      # - name: Tear down services
-      #   if: always()
-      #   run: docker compose down
+      - name: Tear down services
+        if: always()
+        run: docker compose down
