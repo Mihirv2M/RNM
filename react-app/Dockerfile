@@ -1,10 +1,10 @@
-FROM node:latest as react
+FROM node:latest as build
 WORKDIR /react-app  
 COPY package.json  .
 COPY package-lock.json .
 RUN npm install
 COPY . ./
-CMD [ "npm","run","build" ]  
+RUN npm run build  
 
 
 FROM nginx:alpine
@@ -12,7 +12,7 @@ FROM nginx:alpine
 # RUN rm -rf /usr/share/nginx/html/*
 
 # Copy build output from the previous stage
-COPY --from=react /react-app/build /usr/share/nginx/html
+COPY --from=build /react-app/build /usr/share/nginx/html
 
 EXPOSE 80
 ENTRYPOINT [ "nginx","-g","daemon off;" ]
