@@ -3,8 +3,8 @@ WORKDIR /react-app
 COPY package.json  .
 COPY package-lock.json .
 RUN npm install
-COPY . ./
-RUN npm run build  
+COPY . .
+RN npm run build  
 
 
 FROM nginx:alpine
