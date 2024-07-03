@@ -20,11 +20,10 @@ jobs:
 
       - name: Build and Push Docker Images
         run: |
-          docker-compose -f docker-compose.yml build
-          docker-compose -f docker-compose.yml up -d
+          docker-compose up --build 
 
-      - name: List Running Containers
-        run: docker ps
+      # - name: List Running Containers
+      #   run: docker ps
         
       - name: Tear down services
         if: always()
