@@ -34,8 +34,8 @@ jobs:
       
       - name: Accessing Secret
         run: | 
-            echo "My Username is ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}"
-            echo "My Password is ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}"
+            echo "My Username is $MONGO_INITDB_ROOT_USERNAME
+            echo "My Password is $MONGO_INITDB_ROOT_PASSWORD
      
       - name: Run the docker 
         run: | 
