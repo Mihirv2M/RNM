@@ -20,7 +20,7 @@ jobs:
 
       - name: Build and Push Docker Images
         run: |
-          docker-compose up --build 
+          docker compose up --build 
 
       # - name: List Running Containers
       #   run: docker ps
