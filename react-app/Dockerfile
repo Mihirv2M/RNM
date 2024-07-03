@@ -3,13 +3,13 @@ WORKDIR /react-app
 COPY package.json  .
 COPY package-lock.json .
 RUN npm install
-COPY . .
+COPY . ./
 CMD [ "npm","run","build" ]  
 
 
 FROM nginx:alpine
 # Remove default nginx website
-RUN rm -rf /usr/share/nginx/html/*
+# RUN rm -rf /usr/share/nginx/html/*
 
 # Copy build output from the previous stage
 COPY --from=react /react-app/build /usr/share/nginx/html
