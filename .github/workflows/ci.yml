@@ -20,7 +20,7 @@ jobs:
 
       - name: Build the images
         run: |
-          docker compose --build 
+          docker compose build 
 
       - name: Down the image
         run: | 
