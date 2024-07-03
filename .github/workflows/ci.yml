@@ -18,14 +18,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build the images
-        run: |
-          docker compose build 
-
       - name: Down the image
         run: | 
           docker compose down
-          
+
+      - name: Build the images
+        run: |
+          docker compose build 
+     
       - name: Run the docker 
         run: | 
           docker compose up -d
