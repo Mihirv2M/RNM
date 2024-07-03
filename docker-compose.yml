@@ -18,7 +18,7 @@ services:
       context: node-server/
       dockerfile: Dockerfile
     ports:
-      - 8080:8080
+      - 8081:8081
     environment:
        MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
        MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD} 
