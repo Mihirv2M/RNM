@@ -15,7 +15,7 @@ function App() {
 
   const handleSubmit = async (e)=>{
     e.preventDefault();
-    const response = await fetch('http://node-server:8080/demo',{
+    const response = await fetch('http://node-server:8081/demo',{
       method:'POST',
       body:JSON.stringify(form),
       headers:{
@@ -27,7 +27,7 @@ function App() {
   }
 
   const getUsers = async ()=>{
-    const response = await fetch('http://node-server:8080/demo',{
+    const response = await fetch('http://node-server:8081/demo',{
       method:'GET',
     })
    const data = await response.json();
