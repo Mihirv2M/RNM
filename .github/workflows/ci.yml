@@ -20,8 +20,8 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
         env:
-         MONGO_INITDB_ROOT_USERNAME: admin
-         MONGO_INITDB_ROOT_PASSWORD: password
+         MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+         MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
 
          
       - name: Build the images
