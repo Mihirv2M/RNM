@@ -33,7 +33,7 @@ jobs:
           echo "MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}" >> .env
       - name: Accessing Secret
         run: |
-           sh -c 'echo "My Username is $MONGO_INITDB_ROOT_USERNAME"; echo "My Password is $MONGO_INITDB_ROOT_PASSWORD"'
+           /bin/sh -c 'echo "My Username is $MONGO_INITDB_ROOT_USERNAME"; echo "My Password is $MONGO_INITDB_ROOT_PASSWORD"'
  
       - name: Run the docker 
         run: | 
