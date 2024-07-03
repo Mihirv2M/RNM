@@ -42,7 +42,7 @@ function App() {
     <div>
       <form onSubmit={handleSubmit}>
         <span>username</span>
-        <input type="text" name="username-login"  onChange={handleForm}></input>
+        <input type="text" name="username"  onChange={handleForm}></input>
         <span>password</span>
         <input type="text" name="password" onChange={handleForm}></input>
         <input type="submit"></input>
