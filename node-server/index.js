@@ -7,7 +7,7 @@ const password = process.env.MONGO_INITDB_ROOT_PASSWORD;
 main().catch(err => console.log(err));
 
 async function main() {
-    await mongoose.connect("mongodb://admin:password@mongodb:27017/");
+    await mongoose.connect("mongodb://admin:password@localhost:27017/");
     // await mongoose.connect("mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/");
     console.log('db connected')
 }
