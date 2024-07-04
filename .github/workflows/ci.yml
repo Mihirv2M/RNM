@@ -12,6 +12,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: self-hosted
+    environment: .env
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -33,8 +34,8 @@ jobs:
           echo "MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}" >> .env
       - name: Accessing Secret
         run: |
-          echo "My Username is $MONGO_INITDB_ROOT_USERNAME"
-          echo "My Password is $MONGO_INITDB_ROOT_PASSWORD"
+          echo "My Username is ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}"
+          echo "My Password is ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}"
 
       - name: Run the docker 
         run: | 
