@@ -22,8 +22,8 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}" >> .env
-          echo "MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}" >> .env
+          echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" >> .env
+          echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
          
       - name: Build the images
         run: |
