@@ -1,56 +1,44 @@
 name: CI/CD Pipeline
 
 on:
-  workflow_dispatch: 
-    inputs:
-      username:
-        description: 'Insert Username:'
-        required: true
-      password:
-        description: 'Insert Password:'
-        required: true
-
+ workflow_dispatch: 
+  inputs:
+   username:
+     description: 'Insert Username:'
+     required: true
+   password:
+     description: 'Insert Password:'
+     required: true
+   
+ 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: self-hosted
     steps:
+      - name: Deploy to EC2 Instance
+        run: | 
+            ssh ec2-user@51.20.134.30
+
+    
       - name: Checkout code
         uses: actions/checkout@v2
+
+      
 
       - name: Create .env file
         run: |
           echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" > .env
           echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
           cat .env
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-
-      - name: Deploy on EC2
+         
+      - name: Build the images
         run: |
-         ssh -o StrictHostKeyChecking=no ec2-user@51.20.134.30 
-  
-            # Navigate to project directory
-            cd /home/ec2-user
-
-            # Pull latest changes
-             git init
-            git remote add origin https://github.com/Mihirv2M/RNM.git 
-            git pull origin main
-
-            # Create .env file
-            echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" > .env
-            echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
-            cat .env
-
-            # Build Docker images
-            docker-compose build
-
-            # Stop and remove old containers
-            docker-compose down
-
-            # Start new containers
-            docker-compose up -d
-            
+          docker compose build 
+         
+      - name: Down the images
+        run: | 
+          docker compose down
+       
+      - name: Run the docker 
+        run: | 
+          docker compose up -d
