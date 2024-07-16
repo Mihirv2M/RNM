@@ -12,8 +12,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -24,23 +23,28 @@ jobs:
           echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
           cat .env
 
-      - name: Set up SSH
+      - name: Build the images
+        run: |
+          docker compose build 
+
+      - name: Down the images
+        run: | 
+          docker compose down
+
+      - name: Run the docker 
+        run: | 
+          docker compose up -d
+
+      - name: Setup SSH
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-      - name: Deploy to EC2
-        env:
-          SSH_AUTH_SOCK: ${{ secrets.SSH_AUTH_SOCK }}
-          SSH_AGENT_PID: ${{ secrets.SSH_AGENT_PID }}
-      
+      - name: Deploy on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@13.48.1.207 << 'EOF'
-            cd /home/ec2-user
+          ssh -o StrictHostKeyChecking=no ec2-user@your-ec2-instance-ip << 'EOF'
+            cd /path/to/your/project
             git pull origin main
-            echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" > .env
-            echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
             docker compose down
-            docker compose build
             docker compose up -d
           EOF
