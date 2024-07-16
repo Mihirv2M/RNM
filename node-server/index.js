@@ -2,12 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const admin= process.env.MONGO_INITDB_ROOT_USERNAME;
-const password = process.env.MONGO_INITDB_ROOT_PASSWORD;
+//const admin= process.env.MONGO_INITDB_ROOT_USERNAME;
+//const password = process.env.MONGO_INITDB_ROOT_PASSWORD;
 main().catch(err => console.log(err));
 
 async function main() {
-    await mongoose.connect("mongodb://admin:password@mongodb:27017/");
+    await mongoose.connect("mongodb://admin:password@13.48.130.156:27017/");
     // await mongoose.connect("mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/");
     console.log('db connected')
 }
