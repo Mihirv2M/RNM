@@ -45,7 +45,7 @@ jobs:
             fi
 
             # Navigate to project directory
-            cd /path/to/your/project
+            cd /home/ec2-user
 
             # Pull latest changes
             git pull origin main
