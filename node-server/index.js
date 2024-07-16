@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 main().catch(err => console.log(err));
 
 async function main() {
-    await mongoose.connect("mongodb://admin:password@13.48.130.156:27017/");
+    await mongoose.connect("mongodb://admin:password@13.48.1.207:27017/");
     // await mongoose.connect("mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/");
     console.log('db connected')
 }
