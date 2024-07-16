@@ -1,56 +1,39 @@
 name: CI/CD Pipeline
 
 on:
-  workflow_dispatch: 
-    inputs:
-      username:
-        description: 'Insert Username:'
-        required: true
-      password:
-        description: 'Insert Password:'
-        required: true
+ workflow_dispatch: 
+  inputs:
+   username:
+     description: 'Insert Username:'
+     required: true
+   password:
+     description: 'Insert Password:'
+     required: true
    
+ 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      
 
       - name: Create .env file
         run: |
           echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" > .env
           echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
           cat .env
-
+         
       - name: Build the images
-        run: docker compose build 
+        run: |
+          docker compose build 
          
       - name: Down the images
-        run: docker compose down
-
-      - name: Prepare SSH key
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Copy files to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -r . ec2-user@your-ec2-instance-public-dns:/home/ec2-user/app
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          EC2_INSTANCE_PUBLIC_DNS: ${{ secrets.EC2_INSTANCE_PUBLIC_DNS }}
-
-      - name: Deploy on EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@your-ec2-instance-public-dns << 'EOF'
-            cd /home/ec2-user/app
-            echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" > .env
-            echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
-            docker compose down
-            docker compose build
-            docker compose up -d
-          EOF
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          EC2_INSTANCE_PUBLIC_DNS: ${{ secrets.EC2_INSTANCE_PUBLIC_DNS }}
+        run: | 
+          docker compose down
+       
+      - name: Run the docker 
+        run: | 
+          docker compose up -d
