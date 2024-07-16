@@ -35,8 +35,8 @@ jobs:
           SSH_AGENT_PID: ${{ secrets.SSH_AGENT_PID }}
       
         run: |
-          ssh -T -o StrictHostKeyChecking=no ec2-user@13.48.1.207 << 'EOF'
-            cd /home/ec2-user/app
+          ssh -o StrictHostKeyChecking=no ec2-user@13.48.1.207 << 'EOF'
+            cd /home/ec2-user
             git pull origin main
             echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" > .env
             echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
