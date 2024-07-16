@@ -11,7 +11,7 @@ on:
         required: true
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: self-hosted
     steps:
       - name: Checkout code
@@ -23,28 +23,44 @@ jobs:
           echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
           cat .env
 
-      - name: Build the images
-        run: |
-          docker compose build 
-
-      - name: Down the images
-        run: | 
-          docker compose down
-
-      - name: Run the docker 
-        run: | 
-          docker compose up -d
-
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy on EC2
         run: |
           ssh -o StrictHostKeyChecking=no ec2-user@your-ec2-instance-ip << 'EOF'
+            # Ensure Docker and Docker Compose are installed
+            if ! command -v docker &> /dev/null; then
+              curl -fsSL https://get.docker.com -o get-docker.sh
+              sh get-docker.sh
+              sudo usermod -aG docker ec2-user
+              newgrp docker
+            fi
+
+            if ! command -v docker-compose &> /dev/null; then
+              sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            fi
+
+            # Navigate to project directory
             cd /path/to/your/project
+
+            # Pull latest changes
             git pull origin main
-            docker compose down
-            docker compose up -d
+
+            # Create .env file
+            echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" > .env
+            echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
+            cat .env
+
+            # Build Docker images
+            docker-compose build
+
+            # Stop and remove old containers
+            docker-compose down
+
+            # Start new containers
+            docker-compose up -d
           EOF
