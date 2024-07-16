@@ -16,8 +16,11 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Deploy to EC2 Instance
+        env: 
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: | 
-            ssh ec2-user@51.20.134.30
+            ssh ec2-user@your-ec2-instance-ip 'bash -s' < deploy.sh
+
 
     
       - name: Checkout code
