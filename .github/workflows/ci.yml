@@ -36,6 +36,8 @@ jobs:
             cd /home/ec2-user
 
             # Pull latest changes
+             git init
+            git remote add origin https://github.com/Mihirv2M/RNM.git 
             git pull origin main
 
             # Create .env file
