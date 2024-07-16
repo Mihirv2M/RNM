@@ -31,7 +31,7 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@13.48.130.156 << 'EOF'
+          ssh -tt StrictHostKeyChecking=no ec2-user@13.48.130.156 << 'EOF'
             cd /home/ec2-user/app
             git pull origin main
             echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" > .env
