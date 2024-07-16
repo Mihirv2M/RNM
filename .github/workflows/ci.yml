@@ -1,39 +1,42 @@
 name: CI/CD Pipeline
 
 on:
- workflow_dispatch: 
-  inputs:
-   username:
-     description: 'Insert Username:'
-     required: true
-   password:
-     description: 'Insert Password:'
-     required: true
-   
- 
+  workflow_dispatch: 
+    inputs:
+      username:
+        description: 'Insert Username:'
+        required: true
+      password:
+        description: 'Insert Password:'
+        required: true
+
 jobs:
   build-and-deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      
 
       - name: Create .env file
         run: |
           echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" > .env
           echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
           cat .env
-         
-      - name: Build the images
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy to EC2
         run: |
-          docker compose build 
-         
-      - name: Down the images
-        run: | 
-          docker compose down
-       
-      - name: Run the docker 
-        run: | 
-          docker compose up -d
+          ssh -o StrictHostKeyChecking=no ec2-user@13.48.130.156 << 'EOF'
+            cd /home/ec2-user/app
+            git pull origin main
+            echo "MONGO_INITDB_ROOT_USERNAME=${{ github.event.inputs.username }}" > .env
+            echo "MONGO_INITDB_ROOT_PASSWORD=${{ github.event.inputs.password }}" >> .env
+            docker compose down
+            docker compose build
+            docker compose up -d
+          EOF
