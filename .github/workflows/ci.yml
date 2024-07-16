@@ -30,6 +30,10 @@ jobs:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
       - name: Deploy to EC2
+        env:
+          SSH_AUTH_SOCK: ${{ secrets.SSH_AUTH_SOCK }}
+          SSH_AGENT_PID: ${{ secrets.SSH_AGENT_PID }}
+      
         run: |
           ssh -t StrictHostKeyChecking=no ec2-user@13.48.1.207 << 'EOF'
             cd /home/ec2-user/app
