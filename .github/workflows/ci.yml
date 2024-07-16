@@ -30,7 +30,7 @@ jobs:
 
       - name: Deploy on EC2
         run: |
-         ssh -o StrictHostKeyChecking=no ec2-user@13.48.1.207 
+         ssh -o StrictHostKeyChecking=no ec2-user@51.20.134.30 
   
             # Navigate to project directory
             cd /home/ec2-user
