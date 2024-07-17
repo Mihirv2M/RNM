@@ -15,9 +15,6 @@ jobs:
   build-and-deploy:
     runs-on: self-hosted
     steps:
-      
-
-    
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -36,8 +33,6 @@ jobs:
       - name: Down the images
         run: | 
           docker compose down
-          
-    
        
       - name: Run the docker 
         run: | 
