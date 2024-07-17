@@ -37,11 +37,7 @@ jobs:
         run: | 
           docker compose down
           
-      - name: Deploy to EC2 Instance
-      
-        run: | 
-            ssh ec2-user@51.20.132.84
-
+    
        
       - name: Run the docker 
         run: | 
