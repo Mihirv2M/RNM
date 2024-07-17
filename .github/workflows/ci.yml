@@ -15,11 +15,7 @@ jobs:
   build-and-deploy:
     runs-on: self-hosted
     steps:
-      - name: Deploy to EC2 Instance
       
-        run: | 
-            ssh ec2-user@51.20.132.84
-
 
     
       - name: Checkout code
@@ -40,6 +36,12 @@ jobs:
       - name: Down the images
         run: | 
           docker compose down
+          
+      - name: Deploy to EC2 Instance
+      
+        run: | 
+            ssh ec2-user@51.20.132.84
+
        
       - name: Run the docker 
         run: | 
