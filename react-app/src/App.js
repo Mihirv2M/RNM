@@ -55,21 +55,40 @@ function App() {
   }, []);
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <span>Enter username Git:</span>
-        <input type="text" name="username" value={form.username} onChange={handleForm} required />
-        <span>Password:</span>
-        <input type="password" name="password" value={form.password} onChange={handleForm} required />
-        <input type="submit" value="Submit" />
+    <div className="app-container">
+      <h1 className="app-title">User Management</h1>
+      <form className="form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="username">Enter username:</label>
+          <input
+            id="username"
+            type="text"
+            name="username"
+            value={form.username}
+            onChange={handleForm}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Password:</label>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleForm}
+            required
+          />
+        </div>
+        <button type="submit" className="submit-button">Submit</button>
       </form>
 
-      {/* List of users displayed below the form */}
-      <div>
+      <div className="user-list">
+        <h2>Users</h2>
         <ul>
           {users.map((user) => (
-            <li key={user._id}>
-              {user.username}, {user.password}
+            <li key={user._id} className="user-item">
+              <span className="username">{user.username}</span> - <span className="password">{user.password}</span>
             </li>
           ))}
         </ul>
