@@ -2,9 +2,11 @@ version: '3.8'
 
 services:
   react-app:
+    container_name: client
     build:
       context: react-app/
       dockerfile: Dockerfile
+    image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client
     ports:
       - "3000:3000"
     volumes:
@@ -13,14 +15,17 @@ services:
       - mongodb_network
 
   node-server: 
+    container_name: server
     build:  
       context: node-server/
       dockerfile: Dockerfile
+    image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server
     ports:
       - "8080:8080"
+
     networks:
       - mongodb_network
-
+      
 volumes:
   mongodb:
     driver: local
