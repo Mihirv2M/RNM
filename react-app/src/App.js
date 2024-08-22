@@ -1,59 +1,81 @@
-import logo from './logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
 
 function App() {
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({ username: '', password: '' });
   const [users, setUsers] = useState([]);
 
-  const handleForm = (e)=>{
+  const handleForm = (e) => {
     setForm({
       ...form,
-      [e.target.name] : e.target.value
-    })
-  }
+      [e.target.name]: e.target.value,
+    });
+  };
 
-  const handleSubmit = async (e)=>{
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch('http://16.171.55.240:8080/demo',{
-      method:'POST',
-      body:JSON.stringify(form),
-      headers:{
-        'Content-Type':'application/json'
+    try {
+      const response = await fetch('http://demoalbforserver-2106681401.us-east-1.elb.amazonaws.com:8080/health/demo', {
+        method: 'POST',
+        body: JSON.stringify(form),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+        getUsers(); // Refresh user list after form submission
+      } else {
+        console.error('Failed to submit form.');
       }
-    })
-    const data = await response.json();
-   console.log(data);
-  }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
+  };
 
-  const getUsers = async ()=>{
-    const response = await fetch('http://16.171.55.240:8080/demo',{
-      method:'GET',
-    })
-   const data = await response.json();
-   setUsers(data);
-  }
+  const getUsers = async () => {
+    try {
+      const response = await fetch('http://demoalbforserver-2106681401.us-east-1.elb.amazonaws.com:8080/test', {
+        method: 'GET',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      } else {
+        console.error('Failed to fetch users.');
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
 
-  useEffect(()=>{
+  useEffect(() => {
     getUsers();
-  },[])
+  }, []);
 
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <span>enter username</span>
-        <input type="text" name="enter username"  onChange={handleForm}></input>
-        <span>password</span>
-        <input type="text" name="password" onChange={handleForm}></input>
-        <input type="submit"></input>
+        <span>Enter username:</span>
+        <input type="text" name="username" value={form.username} onChange={handleForm} required />
+        <span>Password:</span>
+        <input type="password" name="password" value={form.password} onChange={handleForm} required />
+        <input type="submit" value="Submit" />
       </form>
+
+      {/* List of users displayed below the form */}
       <div>
         <ul>
-          {users.map(user=><li key={user._id}>{user.username},{user.password}</li>)}
+          {users.map((user) => (
+            <li key={user._id}>
+              {user.username}, {user.password}
+            </li>
+          ))}
         </ul>
       </div>
     </div>
-  )
+  );
 }
 
 export default App;
