@@ -30,17 +30,18 @@ jobs:
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server
 
     - name: Update ECS Client Service
-      uses: aws-actions/amazon-ecs-update-service@v1
-      with:
-        cluster: Cluster
-        service: Front
-        image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client
-        wait-for-service-stability: true
+      run: |
+        aws ecs update-service \
+          --cluster Cluster \
+          --service Front \
+          --force-new-deployment \
+          --region us-east-1
 
+          
     - name: Update ECS Server Service
-      uses: aws-actions/amazon-ecs-update-service@v1
-      with:
-        cluster: Cluster
-        service: Node
-        image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server
-        wait-for-service-stability: true
+      run: |
+        aws ecs update-service \
+          --cluster Cluster \
+          --service Node \
+          --force-new-deployment \
+          --region us-east-1
