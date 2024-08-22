@@ -2,47 +2,68 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-//const admin= process.env.MONGO_INITDB_ROOT_USERNAME;
-//const password = process.env.MONGO_INITDB_ROOT_PASSWORD;
-main().catch(err => console.log(err));
+
+const dbUrl = 'mongodb+srv://mihir:Mihir1234@cluster0.glpnl5r.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+
+main().catch(err => console.log('Error connecting to database:', err));
 
 async function main() {
-    await mongoose.connect("mongodb://admin:password@16.171.55.240:27017/");
-    // await mongoose.connect("mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/");
-    console.log('db connected')
+    await mongoose.connect(dbUrl, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    });
+    console.log('Database connected');
 }
+
 const userSchema = new mongoose.Schema({
     username: String,
-    password: String
+    password: String,
 });
 
 const User = mongoose.model('User', userSchema);
-
-
-
 
 const server = express();
 
 server.use(cors());
 server.use(bodyParser.json());
 
+// Health check route for ECS
+server.get('/health', (req, res) => {
+    res.status(200).json({ status: 'healthy' });
+});
+
 // CRUD - Create
-server.post('/demo',async (req,res)=>{
-     
-    let user = new User();
-    user.username = req.body.username;
-    user.password = req.body.password;
-    const doc = await user.save();
+server.post('/health/demo', async (req, res) => {
+    try {
+        const user = new User({
+            username: req.body.username,
+            password: req.body.password,
+        });
+        const doc = await user.save();
+        console.log('User created:', doc);
+        res.json(doc);
+    } catch (err) {
+        console.error('Error creating user:', err);
+        res.status(500).json({ error: 'Failed to create user' });
+    }
+});
 
-    console.log(doc);
-    res.json(doc);
-})
+// Retrieve all users
+server.get('/test', async (req, res) => {
+    try {
+        const docs = await User.find({});
+        res.json(docs);
+    } catch (err) {
+        console.error('Error retrieving users:', err);
+        res.status(500).json({ error: 'Failed to retrieve users' });
+    }
+});
 
-server.get('/test',async (req,res)=>{
-    const docs = await User.find({});
-    res.json(docs)
-})
+// Handle undefined routes (404)
+server.use((req, res) => {
+    res.status(404).json({ error: 'Not Found' });
+});
 
-server.listen(8080,()=>{
-    console.log('server started')
-})
+server.listen(8080, () => {
+    console.log('Server started on port 8080');
+});
