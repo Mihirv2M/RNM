@@ -55,6 +55,7 @@ function App() {
   }, []);
 
   return (
+    <h1>From Git CICD</h1>
     <div>
       <form onSubmit={handleSubmit}>
         <span>Enter username:</span>
