@@ -18,25 +18,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    # environment:
-    #   MONGO_INITDB_ROOT_USERNAME: mihirvbrainerhub
-    #   MONGO_INITDB_ROOT_PASSWORD: Mihir1234
     networks:
       - mongodb_network
-
-  # mongodb:
-  #   image: mongo:latest
-  #   container_name: mongodb
-  #   restart: always 
-  #   ports:
-  #     - "27017:27017"
-  #   environment:   
-  #     MONGO_INITDB_ROOT_USERNAME: admin
-  #     MONGO_INITDB_ROOT_PASSWORD: password   
-  #   volumes:
-  #     - mongodb:/data/db
-  #   networks: 
-  #     - mongodb_network
 
 volumes:
   mongodb:
