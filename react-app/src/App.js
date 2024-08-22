@@ -55,10 +55,9 @@ function App() {
   }, []);
 
   return (
-    <h1>From Git CICD</h1>
     <div>
       <form onSubmit={handleSubmit}>
-        <span>Enter username:</span>
+        <span>Enter username Git:</span>
         <input type="text" name="username" value={form.username} onChange={handleForm} required />
         <span>Password:</span>
         <input type="password" name="password" value={form.password} onChange={handleForm} required />
