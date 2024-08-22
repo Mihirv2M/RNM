@@ -15,10 +15,7 @@ jobs:
       run: |
         docker compose build
        
-    - name: Log in to Amazon ECR
-      run: |
-           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
-           
+    
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
