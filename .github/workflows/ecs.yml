@@ -16,13 +16,8 @@ jobs:
 
     - name: Build Docker images
       run: |
-        cd react-app
-        docker build -t 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client . 
-        cd ..
-        cd node-server
-        docker build -t 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server .  
-        cd ..
-
+        docker compose build
+       
     - name: Log in to Amazon ECR
       run: |
          docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
