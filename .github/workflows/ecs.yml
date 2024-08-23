@@ -47,13 +47,13 @@ jobs:
         aws ecs create-cluster --cluster-name Demo --region ${{ secrets.AWS_REGION }}
 
     - name: Update ECS Client Service with New Task Definition Revision
-      uses: aws-actions/amazon-ecs-update-service@v1
-      with:
-        cluster: Cluster
-        service: Front
-        task-definition: ${{ env.TASK_DEFINITION_ARN }}
-        force-new-deployment: true
-        wait-for-service-stability: true
+      run: |
+        aws ecs update-service \
+          --cluster Cluster \
+          --service Front \
+          --task-definition ${{ env.TASK_DEFINITION_ARN }} \
+          --force-new-deployment \
+          --region us-east-1
 
 
     # - name: Update ECS Client Service
@@ -65,8 +65,7 @@ jobs:
     #       --force-new-deployment \
     #       --region us-east-1
 
-          
-    - name: Update ECS Server Service
+    - name: Update ECS Server Service with New Task Definition Revision
       run: |
         aws ecs update-service \
           --cluster Cluster \
