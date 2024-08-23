@@ -33,10 +33,16 @@ jobs:
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.0
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.0
 
+    - name: Create ECS Cluster
+      run: |
+        aws ecs create-cluster --cluster-name Demo --region ${{ secrets.AWS_REGION }}
+
+
     - name: Update ECS Client Service
       run: |
         aws ecs update-service \
           --cluster Cluster \
+          --container-definitions file://client-container-definition.json \
           --service Front \
           --force-new-deployment \
           --region us-east-1
