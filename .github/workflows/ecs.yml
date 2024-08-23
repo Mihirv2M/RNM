@@ -25,14 +25,13 @@ jobs:
         V_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21-1-image-repo --query 'imageDetails[-1].imageTags[0]' --output text || echo "1.0")
         
         # Extract the major and minor parts of the version
-       
-        V_MINOR=$(echo $V_CURRENT_TAG | cut -d , f2)
+        V_MINOR=$(echo $V_CURRENT_TAG | cut -d. -f2)
         
         # Increment the minor version
         V_MINOR=$((V_MINOR+1))
 
         # Construct the new version for the V image
-        V_VERSION=".$V_MINOR"
+        V_VERSION="1.${V_MINOR}"
 
         # Set the new version as an environment variable for subsequent steps
         echo "V_VERSION=$V_VERSION" >> $GITHUB_ENV
@@ -47,13 +46,13 @@ jobs:
         S_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21-2-image-repo --query 'imageDetails[-1].imageTags[0]' --output text || echo "2.0")
 
         # Extract the major and minor parts of the version
-        S_MINOR=$(echo $S_CURRENT_TAG  | cut -d. -f2)
+        S_MINOR=$(echo $S_CURRENT_TAG | cut -d. -f2)
 
         # Increment the minor version
         S_MINOR=$((S_MINOR+1))
 
         # Construct the new version for the S image
-        S_VERSION=".$S_MINOR"
+        S_VERSION="2.${S_MINOR}"
 
         # Set the new version as an environment variable for subsequent steps
         echo "S_VERSION=$S_VERSION" >> $GITHUB_ENV
