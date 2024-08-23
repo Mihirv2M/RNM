@@ -11,23 +11,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       
-    - name: Read and increment version tag
-      id: version
+    - name: Get current version tag
+      id: get-version
       run: |
-        # Read the current version from version.txt
-        CURRENT_VERSION=$(cat version.txt)
-        echo "Current version is $CURRENT_VERSION"
+        # Retrieve the current latest tag
+        CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --query 'imageDetails[-1].imageTags[0]' --output text)
+        
+        # If no tags are found, set default to v1.0
+        if [ -z "$CURRENT_TAG" ]; then
+          CURRENT_TAG="v1.0"
+        fi
 
-        # Increment the version number
-        VERSION_PREFIX="v"
-        MAJOR=$(echo $CURRENT_VERSION | cut -d'.' -f1 | sed 's/^v//')
-        MINOR=$(echo $CURRENT_VERSION | cut -d'.' -f2)
-        NEW_MINOR=$((MINOR + 1))
-        NEW_VERSION="${VERSION_PREFIX}${MAJOR}.${NEW_MINOR}"
+        # Increment the version
+        VERSION=$(echo $CURRENT_TAG | awk -F. -v OFS=. '{$NF++;print}')
+        
+        # Set as output for subsequent steps
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-        # Update version.txt
-        echo $NEW_VERSION > version.txt
-        echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
     - name: Build Docker images
       run: |
