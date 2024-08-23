@@ -26,7 +26,7 @@ jobs:
       id: get-version-1
       run: |
         # Retrieve the latest tag for the 1 image from ECR
-        V_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 -image-repo 1.1 --query 'imageDetails[*].imageTags[0]' --output text | sort -V | tail -n 1 || echo "1.1")
+        V_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --image-repo 1.1 --query 'imageDetails[*].imageTags[0]' --output text | sort -V | tail -n 1 || echo "1.1")
         
         # Extract the major and minor parts of the version
         V_MAJOR=$(echo $V_CURRENT_TAG | cut -d. -f1)
@@ -48,7 +48,7 @@ jobs:
       id: get-version-2
       run: |
         # Retrieve the latest tag for the S image from ECR
-        S_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 -image-repo 2.1 --query 'imageDetails[*].imageTags[0]' --output text | sort -V | tail -n 1 || echo "2.1")
+        S_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --image-repo 2.1 --query 'imageDetails[*].imageTags[0]' --output text | sort -V | tail -n 1 || echo "2.1")
 
         # Extract the major and minor parts of the version
         S_MAJOR=$(echo $S_CURRENT_TAG | cut -d. -f1)
