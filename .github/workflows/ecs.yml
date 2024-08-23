@@ -1,4 +1,4 @@
-name: CI/CD ecs Pipeline
+name: CI/CD ECS Pipeline
 
 on:
   workflow_dispatch:
@@ -17,18 +17,17 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
-        
+
     - name: Get current version tag for 1 image
       id: get-version-1
       run: |
         # Retrieve the latest tag for the 1 image from ECR
         V_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21-1-image-repo --query 'imageDetails[-1].imageTags[0]' --output text || echo "1.0")
         
-        # Extract the numeric part of the version and increment it
+        # Extract the major and minor parts of the version
         V_MAJOR=$(echo $V_CURRENT_TAG | cut -d. -f1)
         V_MINOR=$(echo $V_CURRENT_TAG | cut -d. -f2)
-
-
+        
         # Increment the minor version
         V_MINOR=$((V_MINOR + 1))
 
@@ -62,7 +61,6 @@ jobs:
 
         # Output the new version for visibility
         echo "New version for S image is $S_VERSION"
-
 
     - name: Build Docker images
       run: |
