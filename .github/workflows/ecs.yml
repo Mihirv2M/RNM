@@ -17,44 +17,45 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
-
+        
     - name: Get current version tag for V image
       id: get-version-v
       run: |
         # Retrieve the latest tag for the V image from ECR
-        V_CURRENT_TAG=$(aws ecr describe-images --repository-name v-image-repo --query 'imageDetails[-1].imageTags[0]' --output text || echo "v.0")
-
-        # Extract the minor version number and increment it
-        V_MINOR=$(echo $V_CURRENT_TAG | cut -d. -f2)
+        V_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21-1-image-repo --query 'imageDetails[-1].imageTags[0]' --output text || echo "1")
+        
+        # Extract the numeric part of the version and increment it
+        V_MINOR=$(echo $V_CURRENT_TAG | grep -o '[0-9]*$')
         V_MINOR=$((V_MINOR + 1))
 
         # Construct the new version for V image
-        V_VERSION=".0.$V_MINOR"
+        V_VERSION="1$V_MINOR"
 
         # Set the new version as an environment variable for subsequent steps
         echo "V_VERSION=$V_VERSION" >> $GITHUB_ENV
 
         # Output the new version for visibility
-        echo "New version for V image is $V_VERSION"
+        echo "New version for 1 image is $V_VERSION"
 
     - name: Get current version tag for S image
       id: get-version-s
       run: |
         # Retrieve the latest tag for the S image from ECR
-        S_CURRENT_TAG=$(aws ecr describe-images --repository-name s-image-repo --query 'imageDetails[-1].imageTags[0]' --output text || echo "s.0")
+        S_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21-2-image-repo --query 'imageDetails[-1].imageTags[0]' --output text || echo "2")
 
-        # Extract the minor version number and increment it
-        S_MINOR=$(echo $S_CURRENT_TAG | cut -d. -f2)
+        # Extract the numeric part of the version and increment it
+        S_MINOR=$(echo $S_CURRENT_TAG | grep -o '[0-9]*$')
         S_MINOR=$((S_MINOR + 1))
 
         # Construct the new version for S image
-        S_VERSION=".0.$S_MINOR"
+        S_VERSION="2$S_MINOR"
 
         # Set the new version as an environment variable for subsequent steps
         echo "S_VERSION=$S_VERSION" >> $GITHUB_ENV
 
         # Output the new version for visibility
-        echo "New version for S image is $S_VERSION"
+        echo "New version for 2 image is $S_VERSION"
+
 
     - name: Build Docker images
       run: |
