@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:975050059495:task-definition/FRONT:10",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:975050059495:task-definition/FRONT:9",
     "containerDefinitions": [
         {
             "name": "FRONT",
