@@ -11,10 +11,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       
-    - name: Set up version tag
+    - name: Read and increment version tag
       id: version
-      run: echo "VERSION=v$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+      run: |
+        # Read the current version from version.txt
+        CURRENT_VERSION=$(cat version.txt)
+        echo "Current version is $CURRENT_VERSION"
 
+        # Increment the version number
+        VERSION_PREFIX="v"
+        MAJOR=$(echo $CURRENT_VERSION | cut -d'.' -f1 | sed 's/^v//')
+        MINOR=$(echo $CURRENT_VERSION | cut -d'.' -f2)
+        NEW_MINOR=$((MINOR + 1))
+        NEW_VERSION="${VERSION_PREFIX}${MAJOR}.${NEW_MINOR}"
+
+        # Update version.txt
+        echo $NEW_VERSION > version.txt
+        echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
     - name: Build Docker images
       run: |
