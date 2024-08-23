@@ -30,42 +30,19 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
      
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.0
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.0
-        
-    - name: Register new ECS Task Definition Revision
-      id: register-task-def
-      run: |
-        TASK_DEFINITION_ARN=$(aws ecs register-task-definition \
-          --cli-input-json file://client-definition.json \
-          --query 'taskDefinition.taskDefinitionArn' \
-          --output text)
-        echo "arn:aws:ecs:us-east-1:975050059495:task-definition/FRONT:9=$TASK_DEFINITION_ARN" >> $GITHUB_ENV
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:v1.0
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:v2.0
 
-    - name: Create ECS Cluster
-      run: |
-        aws ecs create-cluster --cluster-name Demo --region ${{ secrets.AWS_REGION }}
-
-    - name: Update ECS Client Service with New Task Definition Revision
+    - name: Update ECS Client Service
       run: |
         aws ecs update-service \
           --cluster Cluster \
           --service Front \
-          --task-definition ${{ env.TASK_DEFINITION_ARN }} \
           --force-new-deployment \
           --region us-east-1
 
-
-    # - name: Update ECS Client Service
-    #   run: |
-    #     aws ecs update-service \
-    #       --cluster Cluster \
-    #       --container-definitions file://client-container-definition.json \
-    #       --service Front \
-    #       --force-new-deployment \
-    #       --region us-east-1
-
-    - name: Update ECS Server Service with New Task Definition Revision
+          
+    - name: Update ECS Server Service
       run: |
         aws ecs update-service \
           --cluster Cluster \
