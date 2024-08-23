@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:975050059495:task-definition/FRONT:8",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:975050059495:task-definition/FRONT:9",
     "containerDefinitions": [
         {
             "name": "FRONT",
-            "image": "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client",
+            "image": "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.0",
             "cpu": 0,
             "portMappings": [
                 {
