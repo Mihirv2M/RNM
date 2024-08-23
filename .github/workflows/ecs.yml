@@ -34,8 +34,8 @@ jobs:
         
     - name: Tag and push Docker images to ECR
       run: |
-        docker tag mihirv21:client 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.VERSION }}
-        docker tag mihirv21:server 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-${{ env.VERSION }}
+        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.VERSION }}
+        docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-${{ env.VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-${{ env.VERSION }}
 
