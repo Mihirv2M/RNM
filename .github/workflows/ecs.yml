@@ -29,7 +29,7 @@ jobs:
         V_MINOR=$(echo $V_CURRENT_TAG + 1 | cut -d. -f2)
         
         # Increment the minor version
-        V_MINOR=$((V_MINOR + 1))
+        V_MINOR=$(V_MINOR + 1)
 
         # Construct the new version for the V image
         V_VERSION=".$V_MINOR"
