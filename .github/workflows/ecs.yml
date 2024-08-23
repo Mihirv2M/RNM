@@ -1,4 +1,4 @@
- name: CI/CD ecs Pipeline
+name: CI/CD ecs Pipeline
 
 on:
   workflow_dispatch:
