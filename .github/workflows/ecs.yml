@@ -40,7 +40,7 @@ jobs:
           --cli-input-json file://client-definition.json \
           --query 'taskDefinition.taskDefinitionArn' \
           --output text)
-        echo "arn:aws:ecs:us-east-1:975050059495:task-definition/FRONT:10=$TASK_DEFINITION_ARN" >> $GITHUB_ENV
+        echo "arn:aws:ecs:us-east-1:975050059495:task-definition/FRONT:9=$TASK_DEFINITION_ARN" >> $GITHUB_ENV
 
     - name: Create ECS Cluster
       run: |
