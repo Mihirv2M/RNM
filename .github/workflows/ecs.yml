@@ -30,8 +30,8 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
      
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.0
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.0
 
     - name: Update ECS Client Service
       run: |
