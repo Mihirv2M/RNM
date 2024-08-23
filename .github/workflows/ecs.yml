@@ -1,74 +1,75 @@
-
-name: Build and Push Docker Images
+          name: CI/CD ecs Pipeline
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          
+    - name: Get current version tag
+      id: get-version
+      run: |
+        # Retrieve the current latest tag
+        CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --query 'imageDetails[-1].imageTags[0]' --output text)
+        
+        # If no tags are found, set default to v1.0
+        if [ -z "$CURRENT_TAG" ]; then
+          CURRENT_TAG="v1.0"
+        fi
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        # Increment the version
+        VERSION=$(echo $CURRENT_TAG | awk -F. -v OFS=. '{$NF++;print}')
+        
+        # Set as output for subsequent steps
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Log in to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and push Docker images
-        env:
-          ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-          ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
-        run: |
-          TAG=$(echo "${GITHUB_REF#refs/tags/v}")
-          docker build -t mihirv21:client 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-$TAG ./client
-          docker build -t mihirv21:server 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-$TAG ./server
-          docker push mihirv21:client 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-$TAG
-          docker push mihirv21:server 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-$TAG
+    - name: Build Docker images
+      run: |
+        docker compose build
+       
+    
+   
+    - name: Log in to Amazon ECR
+      run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-  update-version-tag:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+   
+        
+    - name: Tag and push Docker images to ECR
+      run: |
+        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1-${{ env.VERSION }}
+        docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2-${{ env.VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-${{ env.VERSION }}
 
-      - name: Determine new version
-        id: get_version
-        run: |
-          latest_tag=$(git tag -l "v*" | sort -V | tail -n1)
-          new_version=$(echo $latest_tag | awk -F. -v OFS=. '{$NF++;print}')
-          echo "New version: v$new_version"
-          echo "VERSION=v$new_version" >> $GITHUB_ENV
 
-      - name: Create new tag
-        run: |
-          git tag -a $VERSION -m "Release version $VERSION"
-          git push origin $VERSION
+    - name: Update ECS Client Service
+      run: |
+        aws ecs update-service \
+          --cluster Cluster \
+          --service Front \
+          --force-new-deployment \
+          --region us-east-1
 
-      - name: Clean up old tags
-        run: |
-          git tag -d $(git tag -l | grep -v $VERSION)
-          git push origin --delete $(git tag -l | grep -v $VERSION)
-
-      - name: Update ECS Client Service
-        run: |
-          aws ecs update-service \
-            --cluster Cluster \
-            --service Front \
-            --force-new-deployment \
-            --region us-east-1
-             
-      - name: Update ECS Server Service
-        run: |
-          aws ecs update-service \
-            --cluster Cluster \
-            -- service Node \
-            --force-new-deployment \
-            --region us-east-1
+          
+    - name: Update ECS Server Service
+      run: |
+        aws ecs update-service \
+          --cluster Cluster \
+          --service Node \
+          --force-new-deployment \
+          --region us-east-1
+    
