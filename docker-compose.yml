@@ -6,7 +6,7 @@ services:
     build:
       context: react-app/
       dockerfile: Dockerfile
-    image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client
+    image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.0
     ports:
       - "3000:3000"
     volumes:
@@ -19,7 +19,7 @@ services:
     build:  
       context: node-server/
       dockerfile: Dockerfile
-    image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server
+    image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.0
     ports:
       - "8080:8080"
 
