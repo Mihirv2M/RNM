@@ -10,51 +10,48 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-      
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-          
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
     - name: Get current version tag
       id: get-version
       run: |
-        # Retrieve the current latest tag
-        CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --query 'imageDetails[-1].imageTags[0]' --output text)
-        
+        # Retrieve the latest tag from ECR
+        CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --query 'imageDetails[-1].imageTags[0]' --output text || echo "v1.0")
+
         # If no tags are found, set default to v1.0
         if [ -z "$CURRENT_TAG" ]; then
           CURRENT_TAG="v1.0"
         fi
 
-        # Increment the version
-        VERSION=$(echo $CURRENT_TAG | awk -F. -v OFS=. '{$NF++;print}')
-        
-        # Set as output for subsequent steps
+        # Increment the minor version number
+        VERSION=$(echo $CURRENT_TAG | awk -F. -v OFS=. '{if ($NF+1 < 10) {$NF++;} else { $NF = 0; $(NF-1)++;} print}')
+
+        # Set the new version as an environment variable for subsequent steps
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
+        # Output the new version for visibility
+        echo "New version is $VERSION"
 
     - name: Build Docker images
       run: |
         docker compose build
-       
-    
-   
+
     - name: Log in to Amazon ECR
       run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-   
-        
     - name: Tag and push Docker images to ECR
       run: |
         docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.VERSION }}
         docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.${{ env.VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.${{ env.VERSION }}
-
 
     - name: Update ECS Client Service
       run: |
@@ -64,7 +61,6 @@ jobs:
           --force-new-deployment \
           --region us-east-1
 
-          
     - name: Update ECS Server Service
       run: |
         aws ecs update-service \
@@ -72,4 +68,3 @@ jobs:
           --service Node \
           --force-new-deployment \
           --region us-east-1
-    
