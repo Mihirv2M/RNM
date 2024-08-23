@@ -1,7 +1,11 @@
+
 name: CI/CD ecs Pipeline
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
@@ -10,51 +14,55 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-      
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-          
-    - name: Get current version tag
-      id: get-version
+
+    - name: Set up Git
+      run: git fetch --tags
+
+    - name: Get latest client version tag
+      id: get_client_version
       run: |
-        # Retrieve the current latest tag
-        CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --query 'imageDetails[-1].imageTags[0]' --output text)
-        
-        # If no tags are found, set default to v1.0
-        if [ -z "$CURRENT_TAG" ]; then
-          CURRENT_TAG="v1.0"
+        CLIENT_LATEST_TAG=$(git tag -l 'client-v*' | sort -V | tail -n 1)
+        if [ -z "$CLIENT_LATEST_TAG" ]; then
+          CLIENT_VERSION="v1.0"
+        else
+          CLIENT_VERSION=$(echo "$CLIENT_LATEST_TAG" | awk -F. '{print $1 "." $2 "." $3 + 1}')
         fi
+        echo "CLIENT_VERSION=${CLIENT_VERSION}" >> $GITHUB_ENV
+        echo "Latest client tag was: ${CLIENT_LATEST_TAG}, New client tag will be: ${CLIENT_VERSION}"
 
-        # Increment the version
-        VERSION=$(echo $CURRENT_TAG | awk -F. -v OFS=. '{$NF++;print}')
-        
-        # Set as output for subsequent steps
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-
+    - name: Get latest server version tag
+      id: get_server_version
+      run: |
+        SERVER_LATEST_TAG=$(git tag -l 'server-v*' | sort -V | tail -n 1)
+        if [ -z "$SERVER_LATEST_TAG" ]; then
+          SERVER_VERSION="v1.0"
+        else
+          SERVER_VERSION=$(echo "$SERVER_LATEST_TAG" | awk -F. '{print $1 "." $2 "." $3 + 1}')
+        fi
+        echo "SERVER_VERSION=${SERVER_VERSION}" >> $GITHUB_ENV
+        echo "Latest server tag was: ${SERVER_LATEST_TAG}, New server tag will be: ${SERVER_VERSION}"
 
     - name: Build Docker images
       run: |
         docker compose build
-       
-    
-   
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
     - name: Log in to Amazon ECR
       run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-   
-        
     - name: Tag and push Docker images to ECR
       run: |
-        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.VERSION }}
-        docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-${{ env.VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-${{ env.VERSION }}
-
+        docker tag mihirv21:client 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
+        docker tag mihirv21:server 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-${{ env.SERVER_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-${{ env.SERVER_VERSION }}
 
     - name: Update ECS Client Service
       run: |
@@ -64,7 +72,6 @@ jobs:
           --force-new-deployment \
           --region us-east-1
 
-          
     - name: Update ECS Server Service
       run: |
         aws ecs update-service \
@@ -72,4 +79,3 @@ jobs:
           --service Node \
           --force-new-deployment \
           --region us-east-1
-    
