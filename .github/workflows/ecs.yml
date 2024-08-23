@@ -37,7 +37,7 @@ jobs:
       id: register-task-def
       run: |
         TASK_DEFINITION_ARN=$(aws ecs register-task-definition \
-          --cli-input-json file://RNM/.github/workflows/client-definition.json \
+          --cli-input-json file://RNM/client-definition.json \
           --query 'taskDefinition.taskDefinitionArn' \
           --output text)
         echo "arn:aws:ecs:us-east-1:975050059495:task-definition/FRONT:10=$TASK_DEFINITION_ARN" >> $GITHUB_ENV
