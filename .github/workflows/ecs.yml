@@ -47,7 +47,6 @@ jobs:
         S_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21-2-image-repo --query 'imageDetails[-1].imageTags[0]' --output text || echo "2.0")
 
         # Extract the major and minor parts of the version
-      
         S_MINOR=$(echo $S_CURRENT_TAG + 1| cut -d. -f2)
 
         # Increment the minor version
@@ -77,18 +76,18 @@ jobs:
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1${{ env.V_VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2${{ env.S_VERSION }}
 
-    # - name: Update ECS Client Service
-    #   run: |
-    #     aws ecs update-service \
-    #       --cluster Cluster \
-    #       --service Front \
-    #       --force-new-deployment \
-    #       --region us-east-1
+    - name: Update ECS Client Service
+      run: |
+        aws ecs update-service \
+          --cluster Cluster \
+          --service Front \
+          --force-new-deployment \
+          --region us-east-1
 
-    # - name: Update ECS Server Service
-    #   run: |
-    #     aws ecs update-service \
-    #       --cluster Cluster \
-    #       --service Node \
-    #       --force-new-deployment \
-    #       --region us-east-1
+    - name: Update ECS Server Service
+      run: |
+        aws ecs update-service \
+          --cluster Cluster \
+          --service Node \
+          --force-new-deployment \
+          --region us-east-1
