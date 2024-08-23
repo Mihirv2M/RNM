@@ -72,12 +72,4 @@ jobs:
           --service Node \
           --force-new-deployment \
           --region us-east-1
-          
-    - name: Commit new version
-      if: github.ref == 'refs/heads/main'
-      run: |
-        git config --global user.name "Mihirv2M"
-        git config --global user.email "mihirvbrainerhub@gmail.com"
-        git add version.txt
-        git commit -m "Increment version to ${{ env.VERSION }}"
-        git push
+    
