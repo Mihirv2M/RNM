@@ -56,7 +56,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1 className="app-title">User Git work  Management</h1>
+      <h1 className="app-title">User Git   Management</h1>
       <form className="form" onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="username">Enter username:</label>
