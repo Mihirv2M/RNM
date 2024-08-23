@@ -1,79 +1,74 @@
 
-name: CI/CD ecs Pipeline
+name: Build and Push Docker Images
 
 on:
-  workflow_dispatch:
-
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Git
-      run: git fetch --tags
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Get latest client version tag
-      id: get_client_version
-      run: |
-        CLIENT_LATEST_TAG=$(git tag -l 'client-v*' | sort -V | tail -n 1)
-        if [ -z "$CLIENT_LATEST_TAG" ]; then
-          CLIENT_VERSION="v1.0"
-        else
-          CLIENT_VERSION=$(echo "$CLIENT_LATEST_TAG" | awk -F. '{print $1 "." $2 "." $3 + 1}')
-        fi
-        echo "CLIENT_VERSION=${CLIENT_VERSION}" >> $GITHUB_ENV
-        echo "Latest client tag was: ${CLIENT_LATEST_TAG}, New client tag will be: ${CLIENT_VERSION}"
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Get latest server version tag
-      id: get_server_version
-      run: |
-        SERVER_LATEST_TAG=$(git tag -l 'server-v*' | sort -V | tail -n 1)
-        if [ -z "$SERVER_LATEST_TAG" ]; then
-          SERVER_VERSION="v1.0"
-        else
-          SERVER_VERSION=$(echo "$SERVER_LATEST_TAG" | awk -F. '{print $1 "." $2 "." $3 + 1}')
-        fi
-        echo "SERVER_VERSION=${SERVER_VERSION}" >> $GITHUB_ENV
-        echo "Latest server tag was: ${SERVER_LATEST_TAG}, New server tag will be: ${SERVER_VERSION}"
+      - name: Build and push Docker images
+        env:
+          ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
+        run: |
+          TAG=$(echo "${GITHUB_REF#refs/tags/v}")
+          docker build -t mihirv21:client 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-$TAG ./client
+          docker build -t mihirv21:server 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-$TAG ./server
+          docker push mihirv21:client 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-$TAG
+          docker push mihirv21:server 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-$TAG
 
-    - name: Build Docker images
-      run: |
-        docker compose build
+  update-version-tag:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: Determine new version
+        id: get_version
+        run: |
+          latest_tag=$(git tag -l "v*" | sort -V | tail -n1)
+          new_version=$(echo $latest_tag | awk -F. -v OFS=. '{$NF++;print}')
+          echo "New version: v$new_version"
+          echo "VERSION=v$new_version" >> $GITHUB_ENV
 
-    - name: Log in to Amazon ECR
-      run: |
-        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
+      - name: Create new tag
+        run: |
+          git tag -a $VERSION -m "Release version $VERSION"
+          git push origin $VERSION
 
-    - name: Tag and push Docker images to ECR
-      run: |
-        docker tag mihirv21:client 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
-        docker tag mihirv21:server 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-${{ env.SERVER_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:server-${{ env.SERVER_VERSION }}
+      - name: Clean up old tags
+        run: |
+          git tag -d $(git tag -l | grep -v $VERSION)
+          git push origin --delete $(git tag -l | grep -v $VERSION)
 
-    - name: Update ECS Client Service
-      run: |
-        aws ecs update-service \
-          --cluster Cluster \
-          --service Front \
-          --force-new-deployment \
-          --region us-east-1
-
-    - name: Update ECS Server Service
-      run: |
-        aws ecs update-service \
-          --cluster Cluster \
-          --service Node \
-          --force-new-deployment \
-          --region us-east-1
+      - name: Update ECS Client Service
+        run: |
+          aws ecs update-service \
+            --cluster Cluster \
+            --service Front \
+            --force-new-deployment \
+            --region us-east-1
+             
+      - name: Update ECS Server Service
+        run: |
+          aws ecs update-service \
+            --cluster Cluster \
+            -- service Node \
+            --force-new-deployment \
+            --region us-east-1
