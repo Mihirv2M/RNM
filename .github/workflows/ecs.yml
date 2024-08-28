@@ -33,19 +33,19 @@ jobs:
           echo "Existing tags: $tags"
 
           # Find the latest tag
-          latest_tag=$(echo "$tags" | tr ' ' '\n' | sort -V | tail -n 1)
-          echo "Latest tag: $latest_tag"
-
-           if [[ -n "$latest_tag" ]]; then
-                IFS='.' read -r -a version <<< "${latest_tag#v}"
-                version[2]=$((version[2]+1)) # Increment patch version
-                new_version="v${version[0]}.${version[1]}.${version[2]}"
-            else
-                new_version="v1.0.0" # Default version if no tags exist
-            fi
-              echo "New tag: $new_version"
-              echo "NEW_TAG=$new_version" >> $GITHUB_ENV
-
+            latest_client_tag=$(echo "$tags" | grep -E '^client-v[0-9]+(\.[0-9]+){0,2}$' | sort -V | tail -n 1)
+         
+          # Increment the version
+          increment_version() {
+              local tag=$1
+              IFS='.' read -r -a version <<< "${tag#*-v}"
+              version[2]=$((version[2]+1)) # Increment patch version
+              echo "v${version[0]}.${version[1]}.${version[2]}"
+          }
+           new_client_version=$(increment_version "$latest_client_tag")
+           echo "New client tag: client-v$new_client_version"
+           echo "NEW_CLIENT_TAG=client-v$new_client_version" >> $GITHUB_ENV
+           
     - name: Build Docker images
       run: |
           docker compose build
@@ -53,8 +53,9 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
           # Tag and push client image
-           docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:1${{ env.NEW_TAG }}
-           docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:1${{ env.NEW_TAG }}
+           docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_TAG }}
+           docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_TAG }}
+
       # docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
       # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
 
