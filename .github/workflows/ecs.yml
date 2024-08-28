@@ -36,6 +36,10 @@ jobs:
           fi
           CLIENT_VERSION=$(echo $CLIENT_TAG | awk -F. -v OFS=. '{$NF++;print}')
           echo "CLIENT_VERSION=${CLIENT_VERSION}" >> $GITHUB_ENV
+          
+    - name: Debug CLIENT_VERSION
+      run: |
+        echo "Client Version: ${{ env.CLIENT_VERSION }}"
 
     - name: Build Docker images
       run: |
