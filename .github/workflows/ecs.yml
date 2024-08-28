@@ -33,18 +33,18 @@ jobs:
           echo "Existing tags: $tags"
 
           # Find the latest tag
-            latest_client_tag=$(echo "$tags" | grep -E '^client-[0-9]+(\.[0-9]+){0,2}$' | sort -V | tail -n 1)
+            latest_client_tag=$(echo "$tags" | grep -E '^v-[0-9]+(\.[0-9]+){0,2}$' | sort -V | tail -n 1)
          
           # Increment the version
           increment_version() {
               local tag=$1
-              IFS='.' read -r -a version <<< "${tag#*-v}"
+              IFS='.' read -r -a version <<< "${tag#*v}"
               version[2]=$((version[2]+1)) # Increment patch version
               echo "v${version[0]}.${version[1]}.${version[2]}"
           }
            new_client_version=$(increment_version "$latest_client_tag")
-           echo "New client tag: client-$new_client_version"
-           echo "NEW_CLIENT_TAG=client-$new_client_version" >> $GITHUB_ENV
+           echo "New client tag:$new_client_version"
+           echo "NEW_CLIENT_TAG=$new_client_version" >> $GITHUB_ENV
            
     - name: Build Docker images
       run: |
