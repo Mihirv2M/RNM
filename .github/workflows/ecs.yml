@@ -11,16 +11,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Set up GitVersion
-      uses: gittools/actions/gitversion@v0.7.0
-      with:
-          versionSpec: '5.x'
-
-    - name: Generate version
-      id: gitversion
-      run: |
-          gitversion /output json /showvariable SemVer > version.json
-          echo "VERSION=$(cat version.json | jq -r .SemVer)" >> $GITHUB_ENV
+    -
 
       
     - name: Configure AWS credentials
@@ -35,13 +26,20 @@ jobs:
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
 
+    - name: Get version from Git tags
+      id: get_version
+      run: |
+          VERSION=$(git describe --tags --abbrev=0)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+
     - name: Build Docker images
       run: |
         docker compose build
 
     - name: Tag and push Docker images to ECR
       run: |
-        echo "Tagging and pushing Docker images with version: ${{ env.VERSION }}"
+        
         docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client.${{ env.VERSION }}
         # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.${{ env.IMAGE_VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.VERSION }}
