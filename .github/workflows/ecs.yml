@@ -43,8 +43,8 @@ jobs:
               echo "v${version[0]}.${version[1]}.${version[2]}"
           }
            new_client_version=$(increment_version "$latest_client_tag")
-           echo "New client tag: client-v$new_client_version"
-           echo "NEW_CLIENT_TAG=client-v$new_client_version" >> $GITHUB_ENV
+           echo "New client tag: client-$new_client_version"
+           echo "NEW_CLIENT_TAG=client-$new_client_version" >> $GITHUB_ENV
            
     - name: Build Docker images
       run: |
