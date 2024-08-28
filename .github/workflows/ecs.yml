@@ -22,41 +22,29 @@ jobs:
       run: |
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-    - name: Get current version tag for 1 image
+    - name: Get current version tag for V image
       id: get-version-1
       run: |
-        # Retrieve the latest tag for the 1 image from ECR
         V_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --query 'imageDetails[*].imageTags[0]' --output text | sort -V | tail -n 1 || echo "1.1")
-        
-        # Extract the major and minor parts of the version
+        V_CURRENT_TAG=$(echo $V_CURRENT_TAG | xargs) # Trim whitespace
         V_MAJOR=$(echo $V_CURRENT_TAG | cut -d. -f1)
         V_MINOR=$(echo $V_CURRENT_TAG | cut -d. -f2)
-        # Increment the minor version
         V_MINOR=$((V_MINOR + 1))
-        # Construct the new version for the V image
         V_VERSION="${V_MAJOR}.${V_MINOR}"
-        # Set the new version as an environment variable for subsequent steps
         echo "V_VERSION=$V_VERSION" >> $GITHUB_ENV
-        # Output the new version for visibility
-        echo "New version for 1 image is $V_VERSION"
+        echo "New version for V image is $V_VERSION"
 
     - name: Get current version tag for S image
       id: get-version-2
       run: |
-        # Retrieve the latest tag for the S image from ECR
         S_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --query 'imageDetails[*].imageTags[0]' --output text | sort -V | tail -n 1 || echo "2.1")
-        # Extract the major and minor parts of the version
+        S_CURRENT_TAG=$(echo $S_CURRENT_TAG | xargs) # Trim whitespace
         S_MAJOR=$(echo $S_CURRENT_TAG | cut -d. -f1)
         S_MINOR=$(echo $S_CURRENT_TAG | cut -d. -f2)
-        # Increment the minor version
         S_MINOR=$((S_MINOR + 1))
-        # Construct the new version for the S image
         S_VERSION="${S_MAJOR}.${S_MINOR}"
-        # Set the new version as an environment variable for subsequent steps
         echo "S_VERSION=$S_VERSION" >> $GITHUB_ENV
-        # Output the new version for visibility
-        echo "New version for S image is $S_VERSION"
-
+        echo "New version for S image is $S_VERSION
     - name: Build Docker images
       run: |
         docker compose build
