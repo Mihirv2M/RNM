@@ -44,7 +44,7 @@ jobs:
         S_MINOR=$((S_MINOR + 1))
         S_VERSION="${S_MAJOR}.${S_MINOR}"
         echo "S_VERSION=$S_VERSION" >> $GITHUB_ENV
-        echo "New version for S image is $S_VERSION
+        echo "New version for S image is $S_VERSION"
     - name: Build Docker images
       run: |
         docker compose build
