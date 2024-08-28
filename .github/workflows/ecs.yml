@@ -22,33 +22,27 @@ jobs:
       run: |
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-    - name: Get current version tag for 1 image
-      id: get-version-1
+    - name: Fetch latest image version
+      id: fetch_version
+      env:
+          AWS_REGION: "us-east-1"  # Specify your region here
+          REPO_NAME: "mihirv21"  # Replace with your repo name
       run: |
-        V_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --query 'imageDetails[*].imageTags[0]' --output text | sort -V | tail -n 1 || echo "1.1")
-        V_CURRENT_TAG=$(echo "$V_CURRENT_TAG" | xargs) # Trim whitespace
-        if [ -z "$V_CURRENT_TAG" ]; then V_CURRENT_TAG="1.1"; fi # Default if empty
-        V_MAJOR=$(echo "$V_CURRENT_TAG" | cut -d. -f1)
-        V_MINOR=$(echo "$V_CURRENT_TAG" | cut -d. -f2)
-        if [ -z "$V_MAJOR" ]; then V_MAJOR="1"; fi # Default major version if empty
-        V_MINOR=$((V_MINOR + 1))
-        V_VERSION="${V_MAJOR}.${V_MINOR}"
-        echo "V_VERSION=$V_VERSION" >> $GITHUB_ENV
-        echo "New version for 1 image is \"$V_VERSION\""
+          # Get the latest image tag
+          latest_version=$(aws ecr list-images --repository-name mihirv21 --region us-east-1 --query 'imageIds[*].imageTag' --output text | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          echo "Latest version: $latest_version"
+          
+          if [ -z "$latest_version" ]; then
+            new_version="1.1"
+          else
+            major=$(echo $latest_version | cut -d. -f1)
+            minor=$(echo $latest_version | cut -d. -f2)
+            new_version="$major.$((minor + 1))"
+          fi
+          
+          echo "New version: $new_version"
+          echo "::set-output name=version::$new_version"
 
-    - name: Get current version tag for S image
-      id: get-version-2
-      run: |
-        S_CURRENT_TAG=$(aws ecr describe-images --repository-name mihirv21 --query 'imageDetails[*].imageTags[0]' --output text | sort -V | tail -n 1 || echo "2.1")
-        S_CURRENT_TAG=$(echo "$S_CURRENT_TAG" | xargs) # Trim whitespace
-        if [ -z "$S_CURRENT_TAG" ]; then S_CURRENT_TAG="2.1"; fi # Default if empty
-        S_MAJOR=$(echo "$S_CURRENT_TAG" | cut -d. -f1)
-        S_MINOR=$(echo "$S_CURRENT_TAG" | cut -d. -f2)
-        if [ -z "$S_MAJOR" ]; then S_MAJOR="2"; fi # Default major version if empty
-        S_MINOR=$((S_MINOR + 1))
-        S_VERSION="${S_MAJOR}.${S_MINOR}"
-        echo "S_VERSION=$S_VERSION" >> $GITHUB_ENV
-        echo "New version for S image is \"$S_VERSION\""
 
     - name: Build Docker images
       run: |
@@ -56,10 +50,12 @@ jobs:
 
     - name: Tag and push Docker images to ECR
       run: |
-        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.V_VERSION }}
-        docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.S_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.V_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.S_VERSION }}
+        env:
+          IMAGE_VERSION: ${{ steps.fetch_version.outputs.version }}
+        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.new_version }}
+        # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.S_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.new_version }}
+        # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.S_VERSION }}
 
     # - name: Update ECS Client Service
     #   run: |
