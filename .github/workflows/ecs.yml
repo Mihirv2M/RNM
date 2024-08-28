@@ -29,19 +29,24 @@ jobs:
     - name: Fetch latest tags from ECR
       id: fetch_tags
       run: |
-          # Fetch the latest tag for client image from ECR
-          CLIENT_VERSION=$(echo $CLIENT_TAG | sed 's/client-//')
+           latest_client_version=$(aws ecr describe-images --repository-name mihirv21/client --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text)
 
-          CLIENT_TAG=$(aws ecr list-images --repository-name mihirv21 --query 'imageIds[?imageTag!=`null`].imageTag' --output text | grep '^client-v' | sort -V | tail -n 1)
-          if [ -z "$CLIENT_TAG" ]; then
-            CLIENT_TAG="v0.0.0"
-          fi
-          CLIENT_VERSION=$(echo $CLIENT_TAG | awk -F. -v OFS=. '{$NF++;print}')
-          echo "CLIENT_VERSION=${CLIENT_VERSION}" >> $GITHUB_ENV
           
     - name: Debug CLIENT_VERSION
       run: |
         echo "Client Version: ${{ env.CLIENT_VERSION }}"
+                  # Extract version numbers and increment them
+        if [[ "$latest_client_version" =~ ^client-v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            major="${BASH_REMATCH[1]}"
+            minor="${BASH_REMATCH[2]}"
+            patch="${BASH_REMATCH[3]}"
+            new_client_version="client-v$major.$minor.$((patch + 1))"
+        else
+           new_client_version="client-v1.0.0"
+        fi
+           echo "New client version: $new_client_version"
+           echo "::set-output name=client-version::$new_client_version"
+
 
     - name: Build Docker images
       run: |
@@ -50,8 +55,11 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
           # Tag and push client image
-          docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
-          docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
+           docker tag ${{ steps.get-latest-version.outputs.client-version }} 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ steps.get-latest-version.outputs.client-version }}
+           docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ steps.get-latest-version.outputs.client-version }}
+
+      # docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
+      # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
 
       # run: |
       
