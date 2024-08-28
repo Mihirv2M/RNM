@@ -29,7 +29,7 @@ jobs:
           REPO_NAME: "mihirv21"  # Replace with your repo name
       run: |
           # Get the latest image tag
-          latest_version=$(aws ecr list-images --repository-name $REPO_NAME --region $AWS_REGION --query 'imageIds[*].imageTag' --output text | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          latest_version=$(aws ecr list-images --repository-name mihirv21 --region us-east-1 --query 'imageIds[*].imageTag' --output text | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
           
           echo "Latest version: $latest_version"
           
