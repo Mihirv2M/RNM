@@ -30,7 +30,7 @@ jobs:
       id: fetch_tags
       run: |
           # Fetch the latest tag for client image from ECR
-          CLIENT_TAG=$(aws ecr list-images --repository-name mihirv21 --query 'imageIds[?imageTag!=`null`].imageTag' --output text | grep '^V0' | sort -V | tail -n 1)
+          CLIENT_TAG=$(aws ecr list-images --repository-name mihirv21 --query 'imageIds[?imageTag!=`null`].imageTag' --output text | grep '^client-v' | sort -V | tail -n 1)
           if [ -z "$CLIENT_TAG" ]; then
             CLIENT_TAG="v0.0.0"
           fi
@@ -48,8 +48,8 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
           # Tag and push client image
-          docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.CLIENT_VERSION }}
-          docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.CLIENT_VERSION }}
+          docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
+          docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
 
       # run: |
       
