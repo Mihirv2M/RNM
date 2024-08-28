@@ -29,7 +29,7 @@ jobs:
       id: get-latest-tag
       run: |
           # Fetch existing tags from ECR
-          tags=$(aws ecr list-images --repository-name my-repo --query 'imageIds[*].imageTag' --output text)
+          tags=$(aws ecr list-images --repository-name mihirv21/client --query 'imageIds[*].imageTag' --output text)
           echo "Existing tags: $tags"
 
           # Find the latest tag
