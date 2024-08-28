@@ -22,7 +22,7 @@ jobs:
       run: |
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-    - name: Fetch latest image version
+   - name: Fetch latest image version
       id: fetch_version
       env:
         AWS_REGION: "us-east-1"
@@ -32,23 +32,21 @@ jobs:
         latest_tags=$(aws ecr list-images --repository-name $REPO_NAME --region $AWS_REGION --query 'imageIds[*].imageTag' --output text)
         echo "Tags found: $latest_tags"
 
-        latest_version=$(echo "$latest_tags" | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+        # Extract the latest semantic version
+        latest_version=$(echo "$latest_tags" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
         echo "Latest version found: $latest_version"
-        
+
         if [ -z "$latest_version" ]; then
-          new_version="1"
+          new_version="1.0.0"
         else
           major=$(echo $latest_version | cut -d. -f1)
           minor=$(echo $latest_version | cut -d. -f2)
-          new_version="$major.$((minor + 1))"
+          patch=$(echo $latest_version | cut -d. -f3)
+          new_version="$major.$minor.$((patch + 1))"
         fi
         
         echo "New version: $new_version"
         echo "IMAGE_VERSION=$new_version" >> $GITHUB_ENV
-
-    - name: Debug IMAGE_VERSION
-      run: |
-        echo "IMAGE_VERSION=${{ env.IMAGE_VERSION }}"
 
     - name: Build Docker images
       run: |
@@ -57,9 +55,9 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
         echo "Tagging and pushing Docker images with version: ${{ env.IMAGE_VERSION }}"
-        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.IMAGE_VERSION }}
-        # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.IMAGE_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.IMAGE_VERSION }}
+        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client.${{ env.IMAGE_VERSION }}
+        # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.${{ env.IMAGE_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client.${{ env.IMAGE_VERSION }}
 
 
       # run: |
