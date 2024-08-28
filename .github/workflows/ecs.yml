@@ -13,7 +13,7 @@ jobs:
     
     - name: Set up GitVersion
       uses: GitTools/actions/gitversion-action@v0.11.0
-      id: gitversion
+      id: GitVersion
       
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
