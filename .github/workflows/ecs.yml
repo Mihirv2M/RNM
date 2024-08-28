@@ -30,7 +30,7 @@ jobs:
       id: fetch_tags
       run: |
           # Fetch the latest tag for client image from ECR
-          CLIENT_TAG=$(aws ecr list-images --repository-name mihirv21 --query 'imageIds[?imageTag!=`null`].imageTag' --output text | grep '^client-' | sort -V | tail -n 1)
+          CLIENT_TAG=$(aws ecr list-images --repository-name mihirv21 --query 'imageIds[?imageTag!=`null`].imageTag' --output text | grep '^v' | sort -V | tail -n 1)
           if [ -z "$CLIENT_TAG" ]; then
             CLIENT_TAG="v0.0.0"
           fi
