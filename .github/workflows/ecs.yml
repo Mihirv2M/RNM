@@ -42,8 +42,12 @@ jobs:
             new_client_version="client-v$major.$minor.$((patch + 1))"
         else
            new_client_version="client-v1.0.0"
+           
         fi
+        
+        
            echo "New client version: $new_client_version"
+           echo "CLIENT_VERSION=$new_client_version" >> $GITHUB_ENV
            echo "::set-output name=client-version::$new_client_version"
 
 
@@ -54,9 +58,8 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
           # Tag and push client image
-           docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ steps.fetch_tags.outputs['client-version'] }}
-           docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ steps.fetch_tags.outputs['client-version'] }}
-
+           docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.CLIENT_VERSION }}
+           docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.CLIENT_VERSION }}
       # docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
       # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
 
