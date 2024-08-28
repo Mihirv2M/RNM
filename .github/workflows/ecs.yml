@@ -36,14 +36,15 @@ jobs:
           latest_tag=$(echo "$tags" | tr ' ' '\n' | sort -V | tail -n 1)
           echo "Latest tag: $latest_tag"
 
-          # Increment the version
-          IFS='.' read -r -a version <<< "${latest_tag#v}"
-          version[2]=$((version[2]+1)) # Increment patch version
-          new_version="v${version[0]}.${version[1]}.${version[2]}"
-          echo "New tag: $new_version"
-
-          echo "NEW_TAG=$new_version" >> $GITHUB_ENV
-
+           if [[ -n "$latest_tag" ]]; then
+                IFS='.' read -r -a version <<< "${latest_tag#v}"
+                version[2]=$((version[2]+1)) # Increment patch version
+                new_version="v${version[0]}.${version[1]}.${version[2]}"
+            else
+                new_version="v1.0.0" # Default version if no tags exist
+            fi
+              echo "New tag: $new_version"
+              echo "NEW_TAG=$new_version" >> $GITHUB_ENV
 
     - name: Build Docker images
       run: |
