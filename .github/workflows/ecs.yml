@@ -29,7 +29,8 @@ jobs:
           REPO_NAME: "mihirv21"  # Replace with your repo name
       run: |
           # Get the latest image tag
-          latest_version=$(aws ecr list-images --repository-name mihirv21 --region us-east-1 --query 'imageIds[*].imageTag' --output text | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          latest_version=$(aws ecr list-images --repository-name $REPO_NAME --region $AWS_REGION --query 'imageIds[*].imageTag' --output text | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          
           echo "Latest version: $latest_version"
           
           if [ -z "$latest_version" ]; then
@@ -43,6 +44,7 @@ jobs:
           echo "New version: $new_version"
           echo "IMAGE_VERSION=$new_version" >> $GITHUB_ENV
 
+
     - name: Build Docker images
       run: |
         docker compose build
@@ -50,13 +52,16 @@ jobs:
     - name: Tag and push Docker images to ECR
       env:
           IMAGE_VERSION: ${{ steps.fetch_version.outputs.version }}
-  
       run: |
-      
         docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.IMAGE_VERSION }}
-        # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.S_VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.IMAGE_VERSION }}
-        # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.S_VERSION }}
+
+      # run: |
+      
+      #   docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.IMAGE_VERSION }}
+      #   # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.S_VERSION }}
+      #   docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.IMAGE_VERSION }}
+      #   # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.S_VERSION }}
 
     # - name: Update ECS Client Service
     #   run: |
