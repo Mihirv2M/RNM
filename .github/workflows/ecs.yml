@@ -30,14 +30,12 @@ jobs:
       id: fetch_tags
       run: |
           # Fetch the latest tag for client image from ECR
-          CLIENT_TAG=$(aws ecr list-images --repository-name mihirv21 --query 'imageIds[?imageTag!=`null`].imageTag' --output text | grep '^v' | sort -V | tail -n 1)
+          CLIENT_TAG=$(aws ecr list-images --repository-name mihirv21 --query 'imageIds[?imageTag!=`null`].imageTag' --output text | grep '^V0' | sort -V | tail -n 1)
           if [ -z "$CLIENT_TAG" ]; then
             CLIENT_TAG="v0.0.0"
           fi
           CLIENT_VERSION=$(echo $CLIENT_TAG | awk -F. -v OFS=. '{$NF++;print}')
-          CLIENT_VERSION=$(echo $CLIENT_VERSION | xargs)  
           echo "CLIENT_VERSION=${CLIENT_VERSION}" >> $GITHUB_ENV
-          echo "CLIENT_VERSION=${CLIENT_VERSION}"
           
     - name: Debug CLIENT_VERSION
       run: |
