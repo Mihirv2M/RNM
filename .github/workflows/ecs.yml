@@ -33,7 +33,7 @@ jobs:
           echo "Existing tags: $tags"
 
           # Find the latest tag
-            latest_client_tag=$(echo "$tags" | grep -E '^client-v[0-9]+(\.[0-9]+){0,2}$' | sort -V | tail -n 1)
+            latest_client_tag=$(echo "$tags" | grep -E '^client-[0-9]+(\.[0-9]+){0,2}$' | sort -V | tail -n 1)
          
           # Increment the version
           increment_version() {
