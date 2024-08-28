@@ -11,12 +11,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Set up GitVersion using Docker
+    - name: Set up GitVersion
+      uses: gittools/actions/gitversion@v0.7.0
+      with:
+          versionSpec: '5.x'
+
+    - name: Generate version
       id: gitversion
       run: |
-          docker run --rm -v $(pwd):/RNM gittools/gitversion:5.0.0-linux-alpine /RNM
-          VERSION=$(docker run --rm -v $(pwd):/RNM gittools/gitversion:5.0.0-linux-alpine /repo /format json | jq -r '.SemVer')
-          echo "GIT_VERSION=${VERSION}" >> $GITHUB_ENV
+          gitversion /output json /showvariable SemVer > version.json
+          echo "VERSION=$(cat version.json | jq -r .SemVer)" >> $GITHUB_ENV
 
       
     - name: Configure AWS credentials
@@ -30,27 +34,6 @@ jobs:
       run: |
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-    - name: Get the latest image version from ECR
-      id: get-version
-      run: |
-          # Fetch the list of image tags
-          TAGS=$(aws ecr list-images --repository-name my-repo --query 'imageIds[*].imageTag' --output text)
-          
-          # Determine the latest version
-          LATEST_VERSION=$(echo "$TAGS" | grep -Eo '[0-9]+\.[0-9]+' | sort -V | tail -n 1)
-          
-          # If no version is found, start with 1.1
-          if [ -z "$LATEST_VERSION" ]; then
-            NEW_VERSION="1.1"
-          else
-            # Increment the minor version
-            IFS='.' read -r -a VERSION_PARTS <<< "$LATEST_VERSION"
-            MINOR=${VERSION_PARTS[1]}
-            NEW_MINOR=$((MINOR + 1))
-            NEW_VERSION="${VERSION_PARTS[0]}.${NEW_MINOR}"
-          fi
-
-          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
 
     - name: Build Docker images
       run: |
@@ -58,10 +41,10 @@ jobs:
 
     - name: Tag and push Docker images to ECR
       run: |
-        echo "Tagging and pushing Docker images with version: ${{ env.NEW_VERSION }}"
-        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client.${{ env.NEW_VERSION }}
+        echo "Tagging and pushing Docker images with version: ${{ env.VERSION }}"
+        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client.${{ env.VERSION }}
         # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.${{ env.IMAGE_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.NEW_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.VERSION }}
 
 
       # run: |
