@@ -25,44 +25,24 @@ jobs:
       run: |
        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-    - name: Fetch latest tags from ECR
-      id: fetch_tags
+    - name: Get the latest image tag
+      id: get-latest-tag
       run: |
-           latest_client_version=$(aws ecr describe-images --repository-name mihirv21/client --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text)
+          # Fetch existing tags from ECR
+          tags=$(aws ecr list-images --repository-name my-repo --query 'imageIds[*].imageTag' --output text)
+          echo "Existing tags: $tags"
 
-          
-    - name: Download version artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: version-file
-        path: ./version
+          # Find the latest tag
+          latest_tag=$(echo "$tags" | tr ' ' '\n' | sort -V | tail -n 1)
+          echo "Latest tag: $latest_tag"
 
-    - name: Increment version
-      id: increment_version
-      run: |
-        if [ -f ./version/latest-version.txt ]; then
-          latest_client_version=$(cat ./version/latest-version.txt)
-        else
-          latest_client_version="client-v0.0.0"
-        fi
+          # Increment the version
+          IFS='.' read -r -a version <<< "${latest_tag#v}"
+          version[2]=$((version[2]+1)) # Increment patch version
+          new_version="v${version[0]}.${version[1]}.${version[2]}"
+          echo "New tag: $new_version"
 
-        if [[ "$latest_client_version" =~ ^client-v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-          major="${BASH_REMATCH[1]}"
-          minor="${BASH_REMATCH[2]}"
-          patch="${BASH_REMATCH[3]}"
-          new_client_version="client-v$major.$minor.$((patch + 1))"
-        else
-          new_client_version="client-v1.0.0"
-        fi
-
-        echo "New client version: $new_client_version"
-        echo $new_client_version > ./version/latest-version.txt
-
-    - name: Upload new version artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: version-file
-        path: ./version/latest-version.txt
+          echo "NEW_TAG=$new_version" >> $GITHUB_ENV
 
 
     - name: Build Docker images
@@ -72,8 +52,8 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
           # Tag and push client image
-           docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.new_client_version }}
-           docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.new_client_version }}
+           docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_TAG }}
+           docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_TAG }}
       # docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
       # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
 
