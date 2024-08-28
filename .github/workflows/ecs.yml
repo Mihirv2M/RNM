@@ -11,9 +11,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Set up GitVersion
-      uses: GitTools/actions/gitversion-action@v0.11.0
-      id: GitVersion
+    - name: Set up GitVersion using Docker
+      id: gitversion
+      run: |
+          docker run --rm -v $(pwd):/repo gittools/gitversion:5.0.0-linux-alpine /repo
+          VERSION=$(docker run --rm -v $(pwd):/repo gittools/gitversion:5.0.0-linux-alpine /repo /format json | jq -r '.SemVer')
+          echo "GIT_VERSION=${VERSION}" >> $GITHUB_ENV
+
       
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
