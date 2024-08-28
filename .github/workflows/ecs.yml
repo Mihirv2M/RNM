@@ -31,24 +31,38 @@ jobs:
            latest_client_version=$(aws ecr describe-images --repository-name mihirv21/client --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text)
 
           
-    - name: Debug CLIENT_VERSION
+    - name: Download version artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: version-file
+        path: ./version
+
+    - name: Increment version
+      id: increment_version
       run: |
-        echo "Client Version: ${{ env.CLIENT_VERSION }}"
-                  # Extract version numbers and increment them
-        if [[ "$latest_client_version" =~ ^client-v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-            major="${BASH_REMATCH[1]}"
-            minor="${BASH_REMATCH[2]}"
-            patch="${BASH_REMATCH[3]}"
-            new_client_version="client-v$major.$minor.$((patch + 1))"
+        if [ -f ./version/latest-version.txt ]; then
+          latest_client_version=$(cat ./version/latest-version.txt)
         else
-           new_client_version="client-v1.0.0"
-           
+          latest_client_version="client-v0.0.0"
         fi
-        
-        
-           echo "New client version: $new_client_version"
-           echo "CLIENT_VERSION=$new_client_version" >> $GITHUB_ENV
-           echo "::set-output name=client-version::$new_client_version"
+
+        if [[ "$latest_client_version" =~ ^client-v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+          major="${BASH_REMATCH[1]}"
+          minor="${BASH_REMATCH[2]}"
+          patch="${BASH_REMATCH[3]}"
+          new_client_version="client-v$major.$minor.$((patch + 1))"
+        else
+          new_client_version="client-v1.0.0"
+        fi
+
+        echo "New client version: $new_client_version"
+        echo $new_client_version > ./version/latest-version.txt
+
+    - name: Upload new version artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: version-file
+        path: ./version/latest-version.txt
 
 
     - name: Build Docker images
@@ -58,8 +72,8 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
           # Tag and push client image
-           docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.CLIENT_VERSION }}
-           docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.CLIENT_VERSION }}
+           docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.new_client_version }}
+           docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.new_client_version }}
       # docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
       # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
 
