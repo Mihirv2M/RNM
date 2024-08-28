@@ -26,11 +26,19 @@ jobs:
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
 
-    - name: Get version from Git tags
-      id: get_version
+    - name: Fetch latest tags from ECR
+      id: fetch_tags
       run: |
-          VERSION=$(git describe --tags --abbrev=0)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          # Fetch the latest tags for client and server images from ECR
+          CLIENT_TAG=$(aws ecr list-images --repository-name client --query 'imageIds[0].imageTag' --output text)
+          # SERVER_TAG=$(aws ecr list-images --repository-name server --query 'imageIds[0].imageTag' --output text)
+
+          # Increment the patch version
+          CLIENT_VERSION=$(echo $CLIENT_TAG | awk -F. -v OFS=. '{$NF++;print}')
+          # SERVER_VERSION=$(echo $SERVER_TAG | awk -F. -v OFS=. '{$NF++;print}')
+
+          echo "CLIENT_VERSION=v${CLIENT_VERSION}" >> $GITHUB_ENV
+          # echo "SERVER_VERSION=v${SERVER_VERSION}" >> $GITHUB_ENV
 
 
     - name: Build Docker images
@@ -40,9 +48,9 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
         
-        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client.${{ env.VERSION }}
+        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client.${{ env.CLIENT_VERSION }}
         # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.${{ env.IMAGE_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client.${{ env.CLIENT_VERSION }}
 
 
       # run: |
