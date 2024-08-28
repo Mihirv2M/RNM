@@ -53,9 +53,9 @@ jobs:
   
       run: |
       
-        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.IMAGE_VERSION }}
+        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1${{ env.IMAGE_VERSION }}
         # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.S_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.IMAGE_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1${{ env.IMAGE_VERSION }}
         # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:${{ env.S_VERSION }}
 
     # - name: Update ECS Client Service
