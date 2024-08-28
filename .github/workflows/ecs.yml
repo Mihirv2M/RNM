@@ -22,7 +22,7 @@ jobs:
       run: |
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-   - name: Fetch latest image version
+    - name: Fetch latest image version
       id: fetch_version
       env:
         AWS_REGION: "us-east-1"
