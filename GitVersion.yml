@@ -1,0 +1,33 @@
+
+# GitVersion.yml
+mode: ContinuousDeployment
+branches:
+  main:
+    increment: Minor
+    tag: ''
+    track-merge-target: true
+  develop:
+    increment: Minor
+    tag: 'beta'
+    track-merge-target: true
+  release:
+    increment: Patch
+    tag: 'rc'
+  hotfix:
+    increment: Patch
+    tag: 'hotfix'
+  feature:
+    increment: Patch
+    tag: 'feature'
+  support:
+    increment: Patch
+    tag: 'support'
+  pull-request:
+    increment: None
+    tag: 'pr'
+    source-branches: ['main']
+  issue:
+    increment: None
+    tag: 'issue'
+versioning:
+  mode: ContinuousDeployment
