@@ -10,7 +10,11 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-
+    
+    - name: Set up GitVersion
+      uses: GitTools/actions/gitversion-action@v0.10.3
+      id: gitversion
+      
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -22,31 +26,27 @@ jobs:
       run: |
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-    - name: Fetch latest image version
-      id: fetch_version
-      env:
-        AWS_REGION: "us-east-1"
-        REPO_NAME: "mihirv21"
+    - name: Get the latest image version from ECR
+      id: get-version
       run: |
-        echo "Fetching latest image tags..."
-        latest_tags=$(aws ecr list-images --repository-name $REPO_NAME --region $AWS_REGION --query 'imageIds[*].imageTag' --output text)
-        echo "Tags found: $latest_tags"
+          # Fetch the list of image tags
+          TAGS=$(aws ecr list-images --repository-name my-repo --query 'imageIds[*].imageTag' --output text)
+          
+          # Determine the latest version
+          LATEST_VERSION=$(echo "$TAGS" | grep -Eo '[0-9]+\.[0-9]+' | sort -V | tail -n 1)
+          
+          # If no version is found, start with 1.1
+          if [ -z "$LATEST_VERSION" ]; then
+            NEW_VERSION="1.1"
+          else
+            # Increment the minor version
+            IFS='.' read -r -a VERSION_PARTS <<< "$LATEST_VERSION"
+            MINOR=${VERSION_PARTS[1]}
+            NEW_MINOR=$((MINOR + 1))
+            NEW_VERSION="${VERSION_PARTS[0]}.${NEW_MINOR}"
+          fi
 
-        # Extract the latest semantic version
-        latest_version=$(echo "$latest_tags" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
-        echo "Latest version found: $latest_version"
-
-        if [ -z "$latest_version" ]; then
-          new_version="1.0.0"
-        else
-          major=$(echo $latest_version | cut -d. -f1)
-          minor=$(echo $latest_version | cut -d. -f2)
-          patch=$(echo $latest_version | cut -d. -f3)
-          new_version="$major.$minor.$((patch + 1))"
-        fi
-        
-        echo "New version: $new_version"
-        echo "IMAGE_VERSION=$new_version" >> $GITHUB_ENV
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
 
     - name: Build Docker images
       run: |
@@ -54,10 +54,10 @@ jobs:
 
     - name: Tag and push Docker images to ECR
       run: |
-        echo "Tagging and pushing Docker images with version: ${{ env.IMAGE_VERSION }}"
-        # docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client.${{ env.IMAGE_VERSION }}
+        echo "Tagging and pushing Docker images with version: ${{ env.NEW_VERSION }}"
+        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client.${{ env.NEW_VERSION }}
         # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:2.${{ env.IMAGE_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.IMAGE_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.NEW_VERSION }}
 
 
       # run: |
