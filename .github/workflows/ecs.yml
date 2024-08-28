@@ -53,6 +53,9 @@ jobs:
       env:
           IMAGE_VERSION: ${{ steps.fetch_version.outputs.version }}
       run: |
+        
+        echo "Tagging and pushing Docker images with version: ${{ env.IMAGE_VERSION }}"
+
         docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.IMAGE_VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:1.${{ env.IMAGE_VERSION }}
 
