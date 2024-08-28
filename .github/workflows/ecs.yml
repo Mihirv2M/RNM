@@ -37,6 +37,7 @@ jobs:
           CLIENT_VERSION=$(echo $CLIENT_TAG | awk -F. -v OFS=. '{$NF++;print}')
           CLIENT_VERSION=$(echo $CLIENT_VERSION | xargs)  
           echo "CLIENT_VERSION=${CLIENT_VERSION}" >> $GITHUB_ENV
+          echo "CLIENT_VERSION=${CLIENT_VERSION}"
           
     - name: Debug CLIENT_VERSION
       run: |
