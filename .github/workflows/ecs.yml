@@ -123,7 +123,7 @@ jobs:
 
     - name: Register updated task definition
       run: |
-          aws ecs register-task-definition --cli-input-json file://updated-task-definition.json
+          aws ecs register-task-definition --cli-input-json file://task-definition.json
 
     - name: Update ECS service
       run: |
