@@ -119,32 +119,55 @@ jobs:
     # - name: Get Node Task Definition
     #   run: |
     #     aws ecs describe-task-definition --task-definition Node --query 'taskDefinition' > node-task-definition.json
-    - name: Download current task definition
-      id: download-task
+    - name: Download client task definition
+      id: download-client-task
       run: |
         aws ecs describe-task-definition \
             --task-definition FRONT \
             --region us-east-1 \
-            --query "taskDefinition" > task-definition.json
-        # aws ecs describe-task-definition \
-        #     --task-definition Node \
-        #     --region us-east-1 \
-        #     --query "taskDefinition" > task-definition.json
-    - name: Fill in new image ID in task definition
-      id: task-def
+            --query "taskDefinition" > front-task-definition.json
+        
+    - name: Client image in Task Definition
+      id: client-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-       task-definition: task-definition.json 
+       task-definition: front-task-definition.json 
        container-name: FRONT
-       image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
+       image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_SERVER_VERSION }}
     
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
       with:
-       task-definition: task-definition.json
+       task-definition: front-task-definition.json
        service: Front
        cluster: Cluster
-       
+  
+    - name: Download server task definition
+      id: download-server-task
+      run: |
+       aws ecs describe-task-definition \
+            --task-definition Node \
+            --region us-east-1 \
+            --query "taskDefinition" > server-task-definition.json
+            
+    - name: Server image in Task Definiton
+      id: server-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+       task-definition: server-task-definition.json 
+       container-name: Node
+       image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
+      with:
+       task-definition: server-task-definition.json
+       service: Node
+       cluster: Cluster
+  
+
+
+            
         # aws ecs update-service \
         #   --cluster Cluster \
         #   --service Node \
