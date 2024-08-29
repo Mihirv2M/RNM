@@ -132,12 +132,12 @@ jobs:
        run : |
           cat front-task-definition-updated.json
           
-    - name: Deploy Client     
-      run: |
-        aws ecs register-task-definition \
-        --region us-east-1 \
-        --cli-input-json file://front-task-definition-updated.json
-        
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
+      with:
+       task-definition: front-task-definition-updated.json
+       service: Front
+       cluster: Cluster        
     # - name: Deploy Amazon ECS task definition
     #   run: |
     #     aws ecs register-task-definition \
