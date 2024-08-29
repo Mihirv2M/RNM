@@ -118,6 +118,7 @@ jobs:
         # Get the latest revision for FRONT
         FRONT_REVISION=$(aws ecs list-task-definitions \
           --family-prefix Front \
+          --region us-east-1
           --sort DESC \
           --max-items 1 \
           --query "taskDefinitionArns[0]" \
@@ -126,6 +127,7 @@ jobs:
         # Get the latest revision for Node
         NODE_REVISION=$(aws ecs list-task-definitions \
           --family-prefix Node \
+          --region us-east-1 \
           --sort DESC \
           --max-items 1 \
           --query "taskDefinitionArns[0]" \
