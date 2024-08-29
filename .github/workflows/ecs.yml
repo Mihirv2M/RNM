@@ -126,7 +126,7 @@ jobs:
     - name: Update client image in Task Definition
       run: |
         jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" \
-           '.containerDefinitions[0].image = $new_image' front-task-definition.json > task-definition-updated.json \
+           '.containerDefinitions[0].image = $new_image' front-task-definition.json > task-definition-updated.json 
           
 
     # - name: Deploy Amazon ECS task definition
