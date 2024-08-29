@@ -107,10 +107,10 @@ jobs:
       id: get_task_definitions
       run: |
         # Get the latest revision for FRONT
-        FRONT_REVISION=$(aws ecs list-task-definitions --region us-east-1 --family-prefix Front --sort DESC --max-items 1 --query "taskDefinitionArns[0]" --output text)
+        FRONT_REVISION=$(aws ecs list-task-definitions --family-prefix Front --sort DESC --max-items 1 --query "taskDefinitionArns[0]" --output text)
     
         # Get the latest revision for Node
-        NODE_REVISION=$(aws ecs list-task-definitions --region us-east-1 --family-prefix Node --sort DESC --max-items 1 --query "taskDefinitionArns[0]" --output text)
+        NODE_REVISION=$(aws ecs list-task-definitions --family-prefix Node --sort DESC --max-items 1 --query "taskDefinitionArns[0]" --output text)
     
         echo "FRONT_REVISION=$FRONT_REVISION" >> $GITHUB_ENV
         echo "NODE_REVISION=$NODE_REVISION" >> $GITHUB_ENV
