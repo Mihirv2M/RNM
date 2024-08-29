@@ -6,7 +6,7 @@ on:
       increment_major:
         description: "Major"
         required: false
-        default: "false" 
+        default: "false"
         type: boolean
       increment_minor:
         description: "Minor"
@@ -19,7 +19,6 @@ on:
         default: "true"  # Default to true to ensure there's always a version increment
         type: boolean
 
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -27,17 +26,17 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
-        
+
     - name: Log in to Amazon ECR
       run: |
-       aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
     - name: Get ECR Image Tags
       id: get_tags
@@ -45,11 +44,11 @@ jobs:
         # Get the latest tags for client and server images
         CLIENT_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/client --query 'imageDetails[*].imageTags' --output json)
         SERVER_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/server --query 'imageDetails[*].imageTags' --output json)
-        
+
         # Extract valid semantic version tags
         CLIENT_TAGS=$(echo $CLIENT_IMAGE_TAGS | jq -r '.[][]' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
         SERVER_TAGS=$(echo $SERVER_IMAGE_TAGS | jq -r '.[][]' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
-        
+
         if [ -z "$CLIENT_TAGS" ]; then
           echo "No valid semantic version tags found for client."
           echo "LATEST_CLIENT_VERSION=v0.0.0" >> $GITHUB_ENV
@@ -103,15 +102,46 @@ jobs:
       run: |
         docker compose build
 
+    - name: Tag and push Docker images to ECR
+      run: |
+        # Tag and push client image
+        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}
+
+        # Tag and push server image
+        docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
+
     - name: Get Latest Task Definition ARNs
       id: get_task_definitions
       run: |
         # Get the latest revision for FRONT
-        FRONT_REVISION=$(aws ecs list-task-definitions --family-prefix Front --sort DESC --max-items 1 --query "taskDefinitionArns[0]" --output text)
+        FRONT_REVISION=$(aws ecs list-task-definitions \
+          --family-prefix Front \
+          --sort DESC \
+          --max-items 1 \
+          --query "taskDefinitionArns[0]" \
+          --output text)
     
         # Get the latest revision for Node
-        NODE_REVISION=$(aws ecs list-task-definitions --family-prefix Node --sort DESC --max-items 1 --query "taskDefinitionArns[0]" --output text)
-    
+        NODE_REVISION=$(aws ecs list-task-definitions \
+          --family-prefix Node \
+          --sort DESC \
+          --max-items 1 \
+          --query "taskDefinitionArns[0]" \
+          --output text)
+
+        # Check if the variables are set correctly
+        if [ -z "$FRONT_REVISION" ] || [ "$FRONT_REVISION" = "None" ]; then
+          echo "FRONT_REVISION not found or returned 'None'"
+          exit 1
+        fi
+
+        if [ -z "$NODE_REVISION" ] || [ "$NODE_REVISION" = "None" ]; then
+          echo "NODE_REVISION not found or returned 'None'"
+          exit 1
+        fi
+
         echo "FRONT_REVISION=$FRONT_REVISION" >> $GITHUB_ENV
         echo "NODE_REVISION=$NODE_REVISION" >> $GITHUB_ENV
 
@@ -120,20 +150,18 @@ jobs:
         aws ecs describe-task-definition --task-definition ${{ env.FRONT_REVISION }} --region us-east-1 > front-task-definition.json
         aws ecs describe-task-definition --task-definition ${{ env.NODE_REVISION }} --region us-east-1 > node-task-definition.json
 
-
-
     - name: Update Task Definitions
       run: |
         FRONT_TASK_DEFINITION=$(cat front-task-definition.json)
         NODE_TASK_DEFINITION=$(cat node-task-definition.json)
 
         # Update Front task definition
-        UPDATED_FRONT_TASK_DEFINITION=$(echo "$FRONT_TASK_DEFINITION" | jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_VERSION }}" '
+        UPDATED_FRONT_TASK_DEFINITION=$(echo "$FRONT_TASK_DEFINITION" | jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" '
           .taskDefinition.containerDefinitions[0].image = $IMAGE'
         )
 
         # Update Node task definition
-        UPDATED_NODE_TASK_DEFINITION=$(echo "$NODE_TASK_DEFINITION" | jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_VERSION }}" '
+        UPDATED_NODE_TASK_DEFINITION=$(echo "$NODE_TASK_DEFINITION" | jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}" '
           .taskDefinition.containerDefinitions[0].image = $IMAGE'
         )
 
@@ -149,5 +177,3 @@ jobs:
         # Update ECS services to use the new task definition
         aws ecs update-service --cluster Cluster --service Front --force-new-deployment --region us-east-1
         aws ecs update-service --cluster Cluster --service Node --force-new-deployment --region us-east-1
-
-   
