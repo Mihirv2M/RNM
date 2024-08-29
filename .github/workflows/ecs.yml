@@ -139,7 +139,8 @@ jobs:
       run: |
         NEW_TASK_ARN=$(aws ecs register-task-definition \
           --cli-input-json file://new-task-definition.json \
-          --query "taskDefinition.taskDefinitionArn" --output text)
+          --output text \
+          --query "taskDefinition.taskDefinitionArn" )
         echo "TASK_DEFINITION_ARN=$NEW_TASK_ARN" >> $GITHUB_ENV
 
     - name: Update ECS Service with New Task Definition
