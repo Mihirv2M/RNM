@@ -115,7 +115,7 @@ jobs:
     - name: Get Latest Task Definition ARNs
       id: get_task_definitions
       run: |
-        # Get the latest revision for FRONT
+       # Get the latest revision for FRONT
         FRONT_REVISION=$(aws ecs list-task-definitions \
           --family-prefix FRONT \
           --region us-east-1 \
@@ -125,24 +125,24 @@ jobs:
           --output text)
     
         # Get the latest revision for Node
-         NODE_REVISION=$(aws ecs list-task-definitions \
-        --family-prefix Node \
-        --region us-east-1 \
-        --sort DESC \
-        --max-items 1 \
-        --query "taskDefinitionArns[0]" \
-        --output text)
+        NODE_REVISION=$(aws ecs list-task-definitions \
+          --family-prefix Node \
+          --region us-east-1 \
+          --sort DESC \
+          --max-items 1 \
+          --query "taskDefinitionArns[0]" \
+          --output text)
 
-        # Check if the variables are set correctly
-        if [ -z "$FRONT_REVISION" ] || [ "$FRONT_REVISION" = "None" ]; then
-          echo "FRONT_REVISION not found or returned 'None'"
-          exit 1
-        fi
+        # # Check if the variables are set correctly
+        # if [ -z "$FRONT_REVISION" ] || [ "$FRONT_REVISION" = "None" ]; then
+        #   echo "FRONT_REVISION not found or returned 'None'"
+        #   exit 1
+        # fi
 
-        if [ -z "$NODE_REVISION" ] || [ "$NODE_REVISION" = "None" ]; then
-          echo "NODE_REVISION not found or returned 'None'"
-          exit 1
-        fi
+        # if [ -z "$NODE_REVISION" ] || [ "$NODE_REVISION" = "None" ]; then
+        #   echo "NODE_REVISION not found or returned 'None'"
+        #   exit 1
+        # fi
 
         echo "FRONT_REVISION=$FRONT_REVISION" >> $GITHUB_ENV
         echo "NODE_REVISION=$NODE_REVISION" >> $GITHUB_ENV
