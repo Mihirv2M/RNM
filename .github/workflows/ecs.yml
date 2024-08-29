@@ -124,7 +124,7 @@ jobs:
       run: |
         aws ecs describe-task-definition \
             --task-definition FRONT \
-            --region us-east-1
+            --region us-east-1 \
             --query "taskDefinition" > task-definition.json
 
   
