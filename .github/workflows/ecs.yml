@@ -143,13 +143,13 @@ jobs:
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
       with:
        task-definition: front-task-definition-updated.json
-       service: Front
+       service: FRONT
        cluster: Cluster 
        
     - name: Deploy Server Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
       with:
        task-definition: Node-task-definition-updated.json
-       service: Node
+       service: NODE
        cluster: Cluster   
        
