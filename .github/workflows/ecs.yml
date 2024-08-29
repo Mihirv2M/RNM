@@ -117,7 +117,7 @@ jobs:
       run: |
         # Get the latest revision for FRONT
         FRONT_REVISION=$(aws ecs list-task-definitions \
-          --family-prefix Front \
+          --family-prefix FRONT \
           --region us-east-1 \
           --sort DESC \
           --max-items 1 \
