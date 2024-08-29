@@ -123,8 +123,10 @@ jobs:
       id: download-task
       run: |
         aws ecs describe-task-definition \
-          --task-definition FRONT \
-          --query "taskDefinition" > task-definition.json
+            --task-definition FRONT \
+            --region us-east-1
+            --query "taskDefinition" > task-definition.json
+
   
     - name: Update task definition with new image
       id: update-task
