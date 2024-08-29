@@ -1,4 +1,4 @@
-  name: CI/CD ECS Pipeline
+name: CI/CD ECS Pipeline
 
 on:
   workflow_dispatch:
@@ -125,7 +125,7 @@ jobs:
           --output text)
     
         # Get the latest revision for Node
-       NODE_REVISION=$(aws ecs list-task-definitions \
+         NODE_REVISION=$(aws ecs list-task-definitions \
         --family-prefix Node \
         --region us-east-1 \
         --sort DESC \
