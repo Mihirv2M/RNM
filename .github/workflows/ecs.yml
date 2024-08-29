@@ -119,11 +119,11 @@ jobs:
 
     - name: Update task definition with new image
       run: |
-          jq '.containerDefinitions[].image = "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_SERVER_VERSION }}"' task-definition.json > task-definition.json
+          jq '.containerDefinitions[].image = "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_SERVER_VERSION }}"' task-definition.json > update-task-definition.json
 
     - name: Register updated task definition
       run: |
-          aws ecs register-task-definition --cli-input-json file://task-definition.json
+          aws ecs register-task-definition --cli-input-json file://update-task-definition.json
 
     - name: Update ECS service
       run: |
