@@ -112,29 +112,47 @@ jobs:
         docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
 
-    - name: Download Current Task Definitions
-      id: download_task_definitions
+    - name: Get FRONT Task Definition
       run: |
-        aws ecs describe-task-definition --task-definition FRONT --region us-east-1 > front-task-definition.json
-        aws ecs describe-task-definition --task-definition Node --region us-east-1 > node-task-definition.json
+        aws ecs describe-task-definition --task-definition FRONT --query 'taskDefinition' > front-task-definition.json
 
-    - name: Update Task Definitions with New Image
+    - name: Get Node Task Definition
       run: |
-        # Update client image in FRONT task definition
-        jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" '.containerDefinitions[] | select(.name == "FRONT").image = $IMAGE' front-task-definition.json > updated-front-task-definition.json
+        aws ecs describe-task-definition --task-definition Node --query 'taskDefinition' > node-task-definition.json
 
-        # Update server image in Node task definition
-        jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}" '.containerDefinitions[] | select(.name == "Node").image = $IMAGE' node-task-definition.json > updated-node-task-definition.json
+    - name: Update FRONT Task Definition with New Client Image
+      run: |
+        jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" '
+          if (.containerDefinitions[]? | select(.name == "FRONT")) then
+            .containerDefinitions[] | select(.name == "FRONT").image = $IMAGE
+          else
+            error("Container definition 'FRONT' not found.")
+          end
+        ' front-task-definition.json > updated-front-task-definition.json
 
-    - name: Register Updated Task Definitions
+    - name: Update Node Task Definition with New Server Image
+      run: |
+        jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}" '
+          if (.containerDefinitions[]? | select(.name == "Node")) then
+            .containerDefinitions[] | select(.name == "Node").image = $IMAGE
+          else
+            error("Container definition 'Node' not found.")
+          end
+        ' node-task-definition.json > updated-node-task-definition.json
+
+    - name: Register Updated FRONT Task Definition
       run: |
         aws ecs register-task-definition --cli-input-json file://updated-front-task-definition.json
+
+    - name: Register Updated Node Task Definition
+      run: |
         aws ecs register-task-definition --cli-input-json file://updated-node-task-definition.json
 
-    - name: Update ECS Services
+    - name: Update ECS Services with New Task Definitions
       run: |
         aws ecs update-service --cluster Cluster --service Front --force-new-deployment --region us-east-1
         aws ecs update-service --cluster Cluster --service Node --force-new-deployment --region us-east-1
+
      # Get the latest revision for FRONT
         # FRONT_REVISION=$(aws ecs list-task-definitions \
         #   --family-prefix FRONT \
