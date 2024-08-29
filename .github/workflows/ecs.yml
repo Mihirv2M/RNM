@@ -125,11 +125,11 @@ jobs:
         aws ecs describe-task-definition \
             --task-definition FRONT \
             --region us-east-1 \
-            --query "taskDefinition" > front-task-definition.json
-        aws ecs describe-task-definition \
-            --task-definition Node \
-            --region us-east-1 \
             --query "taskDefinition" > task-definition.json
+        # aws ecs describe-task-definition \
+        #     --task-definition Node \
+        #     --region us-east-1 \
+        #     --query "taskDefinition" > task-definition.json
     - name: Fill in new image ID in task definition
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
