@@ -118,23 +118,24 @@ jobs:
         aws ecs describe-task-definition \
             --task-definition FRONT \
             --region us-east-1 \
-            --query "taskDefinition" > front-task-definition.json
+            --query "taskDefinition" > front-task-definition.json \
+            cat front-task-definition.json
         
     - name: Update client image in Task Definition
       run: |
         jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" \
            '.containerDefinitions[0].image = $new_image' front-task-definition.json > task-definition-updated.json \
-           cat task-definition-updated.json
+          
 
-    - name: Deploy Amazon ECS task definition
-      run: |
-        aws ecs register-task-definition \
-          --region us-east-1 \
-          --cli-input-json file://task-definition-updated.json
+    # - name: Deploy Amazon ECS task definition
+    #   run: |
+    #     aws ecs register-task-definition \
+    #       --region us-east-1 \
+    #       --cli-input-json file://task-definition-updated.json
   
-    - name: Cleanup
-      run: |
-          rm front-task-def.json node-task-def.json front-task-def-updated.json node-task-def-updated.json
+    # - name: Cleanup
+    #   run: |
+    #       rm front-task-def.json node-task-def.json front-task-def-updated.json node-task-def-updated.json
 
             
        
