@@ -103,20 +103,24 @@ jobs:
       run: |
         docker compose build
 
-    - name: Tag and push Docker images to ECR
+    - name: Get Latest Task Definition ARNs
+      id: get_task_definitions
       run: |
-        # Tag and push client image
-        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}
-
-        # Tag and push server image
-        docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
+        # Get the latest revision for FRONT
+        FRONT_REVISION=$(aws ecs list-task-definitions --region us-east-1 --family-prefix FRONT --sort DESC --max-items 1 --query "taskDefinitionArns[0]" --output text)
+    
+        # Get the latest revision for Node
+        NODE_REVISION=$(aws ecs list-task-definitions --region us-east-1 --family-prefix Node --sort DESC --max-items 1 --query "taskDefinitionArns[0]" --output text)
+    
+        echo "FRONT_REVISION=$FRONT_REVISION" >> $GITHUB_ENV
+        echo "NODE_REVISION=$NODE_REVISION" >> $GITHUB_ENV
 
     - name: Download Current Task Definitions
       run: |
-        aws ecs describe-task-definition --task-definition Front > front-task-definition.json
-        aws ecs describe-task-definition --task-definition Node > node-task-definition.json
+        aws ecs describe-task-definition --task-definition ${{ env.FRONT_REVISION }} --region us-east-1 > front-task-definition.json
+        aws ecs describe-task-definition --task-definition ${{ env.NODE_REVISION }} --region us-east-1 > node-task-definition.json
+
+
 
     - name: Update Task Definitions
       run: |
