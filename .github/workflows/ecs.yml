@@ -129,46 +129,28 @@ jobs:
         aws ecs describe-task-definition \
             --task-definition Node \
             --region us-east-1 \
-            --query "taskDefinition" > node-task-definition.json
-
-    - name: Update task definition with new image
-      id: update-task
-      run: |
-        jq --arg IMAGE_URI "975050059495.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" \
-          '.containerDefinitions[0].image = $IMAGE_URI' front-task-definition.json > new-front-task-definition.json
-        jq --arg IMAGE_URI "975050059495.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}" \
-          '.containerDefinitions[0].image = $IMAGE_URI' node-task-definition.json > new-node-task-definition.json
-
-    - name: Register new task definitions
-      id: register-tasks
-      run: |
-        FRONT_TASK_ARN=$(aws ecs register-task-definition \
-          --cli-input-json file://new-front-task-definition.json \
-          --output text \
-          --query "taskDefinition.taskDefinitionArn")
-        echo "FRONT_TASK_DEFINITION_ARN=$FRONT_TASK_ARN" >> $GITHUB_ENV
-        
-        NODE_TASK_ARN=$(aws ecs register-task-definition \
-          --cli-input-json file://new-node-task-definition.json \
-          --output text \
-          --query "taskDefinition.taskDefinitionArn")
-        echo "NODE_TASK_DEFINITION_ARN=$NODE_TASK_ARN" >> $GITHUB_ENV
-
-    - name: Update ECS Services with New Task Definitions
-      run: |
-        aws ecs update-service \
-          --cluster Cluster \
-          --service Front \
-          --task-definition ${{ env.FRONT_TASK_DEFINITION_ARN }} \
-          --force-new-deployment \
-          --region ${{ secrets.AWS_REGION }}
-
-        aws ecs update-service \
-          --cluster Cluster \
-          --service Node \
-          --task-definition ${{ env.NODE_TASK_DEFINITION_ARN }} \
-          --force-new-deployment \
-          --region ${{ secrets.AWS_REGION }}
+            --query "taskDefinition" > task-definition.json
+    - name: Fill in new image ID in task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+       task-definition: task-definition.json 
+       container-name: FRONT
+       image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
+    
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
+      with:
+       task-definition: tasl-definition.json
+       service: Front
+       cluster: Cluster
+       
+        # aws ecs update-service \
+        #   --cluster Cluster \
+        #   --service Node \
+        #   --task-definition ${{ env.NODE_TASK_DEFINITION_ARN }} \
+        #   --force-new-deployment \
+        #   --region ${{ secrets.AWS_REGION }}
 
     # - name: Register Updated FRONT Task Definition
     #   run: |
