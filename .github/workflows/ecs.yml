@@ -39,17 +39,19 @@ jobs:
       run: |
        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-    - name: Get ECR Client Image Tags
-      id: get_client_tags
+    - name: Get ECR Image Tags
+      id: get_tags
       run: |
-        CLIENT_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/client \
-          --query 'imageDetails[*].imageTags' --output json)
+        # Get the latest tags for client and server images
+        CLIENT_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/client --query 'imageDetails[*].imageTags' --output json)
+        SERVER_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/server --query 'imageDetails[*].imageTags' --output json)
         
-        # Extract only valid semantic version tags (e.g., v1.0.0)
+        # Extract valid semantic version tags
         CLIENT_TAGS=$(echo $CLIENT_IMAGE_TAGS | jq -r '.[][]' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
+        SERVER_TAGS=$(echo $SERVER_IMAGE_TAGS | jq -r '.[][]' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
         
         if [ -z "$CLIENT_TAGS" ]; then
-          echo "No valid semantic version tags found."
+          echo "No valid semantic version tags found for client."
           echo "LATEST_CLIENT_VERSION=v0.0.0" >> $GITHUB_ENV
         else
           LATEST_CLIENT_VERSION=$(echo "$CLIENT_TAGS" | tail -n 1)
@@ -57,17 +59,8 @@ jobs:
           echo "Latest client version found: $LATEST_CLIENT_VERSION"
         fi
 
-    - name: Get ECR Server Image Tags
-      id: get_server_tags
-      run: |
-        SERVER_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/server \
-          --query 'imageDetails[*].imageTags' --output json)
-        
-        # Extract only valid semantic version tags (e.g., v1.0.0)
-        SERVER_TAGS=$(echo $SERVER_IMAGE_TAGS | jq -r '.[][]' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
-        
         if [ -z "$SERVER_TAGS" ]; then
-          echo "No valid semantic version tags found."
+          echo "No valid semantic version tags found for server."
           echo "LATEST_SERVER_VERSION=v0.0.0" >> $GITHUB_ENV
         else
           LATEST_SERVER_VERSION=$(echo "$SERVER_TAGS" | tail -n 1)
@@ -75,59 +68,51 @@ jobs:
           echo "Latest server version found: $LATEST_SERVER_VERSION"
         fi
 
-    - name: Increment Client Version
-      id: increment_client_version
+    - name: Increment Versions
+      id: increment_versions
       run: |
-        LATEST_CLIENT_VERSION=${{ env.LATEST_CLIENT_VERSION }}
-        
-        # Strip the "v" prefix and split into major, minor, patch
-        CLIENT_VERSION_NUMBER=${LATEST_CLIENT_VERSION#v}
-        IFS='.' read -r MAJOR MINOR PATCH <<< "$CLIENT_VERSION_NUMBER"
+        # Increment both client and server versions based on inputs
+        increment_version() {
+          local VERSION=$1
+          local VERSION_TYPE=$2
 
-        # Increment the appropriate version parts
-        [ ${{ github.event.inputs.increment_major }} = "true" ] && MAJOR=$((MAJOR + 1))
-        [ ${{ github.event.inputs.increment_minor }} = "true" ] && MINOR=$((MINOR + 1))
-        [ ${{ github.event.inputs.increment_patch }} = "true" ] && PATCH=$((PATCH + 1))
+          # Strip the "v" prefix and split into major, minor, patch
+          VERSION_NUMBER=${VERSION#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_NUMBER"
 
-        # Ensure proper version number format
-        NEW_CLIENT_VERSION="v$MAJOR.$MINOR.$PATCH"
+          # Increment the appropriate version parts
+          [ "${{ github.event.inputs.increment_major }}" = "true" ] && MAJOR=$((MAJOR + 1))
+          [ "${{ github.event.inputs.increment_minor }}" = "true" ] && MINOR=$((MINOR + 1))
+          [ "${{ github.event.inputs.increment_patch }}" = "true" ] && PATCH=$((PATCH + 1))
+
+          # Ensure proper version number format
+          echo "v$MAJOR.$MINOR.$PATCH"
+        }
+
+        # Increment client version
+        NEW_CLIENT_VERSION=$(increment_version "${{ env.LATEST_CLIENT_VERSION }}" "client")
         echo "NEW_CLIENT_VERSION=$NEW_CLIENT_VERSION" >> $GITHUB_ENV
         echo "New client version: $NEW_CLIENT_VERSION"
 
-    - name: Increment Server Version
-      id: increment_server_version
-      run: |
-        LATEST_SERVER_VERSION=${{ env.LATEST_SERVER_VERSION }}
-        
-        # Strip the "v" prefix and split into major, minor, patch
-        SERVER_VERSION_NUMBER=${LATEST_SERVER_VERSION#v}
-        IFS='.' read -r MAJOR MINOR PATCH <<< "$SERVER_VERSION_NUMBER"
-
-        # Increment the appropriate version parts
-        [ ${{ github.event.inputs.increment_major }} = "true" ] && MAJOR=$((MAJOR + 1))
-        [ ${{ github.event.inputs.increment_minor }} = "true" ] && MINOR=$((MINOR + 1))
-        [ ${{ github.event.inputs.increment_patch }} = "true" ] && PATCH=$((PATCH + 1))
-
-        # Ensure proper version number format
-        NEW_SERVER_VERSION="v$MAJOR.$MINOR.$PATCH"
+        # Increment server version
+        NEW_SERVER_VERSION=$(increment_version "${{ env.LATEST_SERVER_VERSION }}" "server")
         echo "NEW_SERVER_VERSION=$NEW_SERVER_VERSION" >> $GITHUB_ENV
         echo "New server version: $NEW_SERVER_VERSION"
- 
+
     - name: Build Docker images
       run: |
         docker compose build
 
-    - name: Tag and push Client Docker image to ECR
+    - name: Tag and push Docker images to ECR
       run: |
         # Tag and push client image
         docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}
 
-    - name: Tag and push Server Docker image to ECR
-      run: |
         # Tag and push server image
         docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
+
 
       # docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
       # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21:client-${{ env.CLIENT_VERSION }}
