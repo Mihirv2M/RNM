@@ -134,7 +134,7 @@ jobs:
 
     - name: Deploy Amazon ECS task definition
       run : |
-         aws ecs register-task-definition --task-definiton FRONT --region us-east-1 --cli-input-json file://front-task-def-updated.json
+         aws ecs register-task-definition --region us-east-1 --cli-input-json file://front-task-def-updated.json
 
     # - name: Download server task definition
     #   id: download-server-task
