@@ -1,4 +1,4 @@
-name: CI/CD ECS Pipeline
+  name: CI/CD ECS Pipeline
 
 on:
   workflow_dispatch:
@@ -118,20 +118,20 @@ jobs:
         # Get the latest revision for FRONT
         FRONT_REVISION=$(aws ecs list-task-definitions \
           --family-prefix Front \
-          --region us-east-1
+          --region us-east-1 \
           --sort DESC \
           --max-items 1 \
           --query "taskDefinitionArns[0]" \
           --output text)
     
         # Get the latest revision for Node
-        NODE_REVISION=$(aws ecs list-task-definitions \
-          --family-prefix Node \
-          --region us-east-1 \
-          --sort DESC \
-          --max-items 1 \
-          --query "taskDefinitionArns[0]" \
-          --output text)
+       NODE_REVISION=$(aws ecs list-task-definitions \
+        --family-prefix Node \
+        --region us-east-1 \
+        --sort DESC \
+        --max-items 1 \
+        --query "taskDefinitionArns[0]" \
+        --output text)
 
         # Check if the variables are set correctly
         if [ -z "$FRONT_REVISION" ] || [ "$FRONT_REVISION" = "None" ]; then
