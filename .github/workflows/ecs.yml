@@ -115,14 +115,27 @@ jobs:
     - name: Get Latest Task Definition ARNs
       id: get_task_definitions
       run: |
-       # Get the latest revision for FRONT
-        FRONT_REVISION=$(aws ecs list-task-definitions \
-          --family-prefix FRONT \
-          --region us-east-1 \
-          --sort DESC \
-          --max-items 1 \
-          --query "taskDefinitionArns[0]" \
-          --output text)
+       aws ecs describe-task-definition --task-definition FRONT --query 'taskDefinition' > task-definition.json
+
+    - name: Update task definition with new image
+      run: |
+          jq '.containerDefinitions[].image = "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_SERVER_VERSION }}"' task-definition.json > updated-task-definition.json
+
+    - name: Register updated task definition
+      run: |
+          aws ecs register-task-definition --cli-input-json file://updated-task-definition.json
+
+    - name: Update ECS service
+      run: |
+          aws ecs update-service --cluster Cluster --service Front --force-new-deployment --region us-east-1
+     # Get the latest revision for FRONT
+        # FRONT_REVISION=$(aws ecs list-task-definitions \
+        #   --family-prefix FRONT \
+        #   --region us-east-1 \
+        #   --sort DESC \
+        #   --max-items 1 \
+        #   --query "taskDefinitionArns[0]" \
+        #   --output text)
     
         # # Get the latest revision for Node
         # NODE_REVISION=$(aws ecs list-task-definitions \
@@ -144,38 +157,38 @@ jobs:
         #   exit 1
         # fi
 
-        echo "FRONT_REVISION=$FRONT_REVISION" >> $GITHUB_ENV
-        # echo "NODE_REVISION=$NODE_REVISION" >> $GITHUB_ENV
+    #     echo "FRONT_REVISION=$FRONT_REVISION" >> $GITHUB_ENV
+    #     # echo "NODE_REVISION=$NODE_REVISION" >> $GITHUB_ENV
 
-    - name: Download Current Task Definitions
-      run: |
-        aws ecs describe-task-definition --task-definition ${{ env.FRONT_REVISION }} --region us-east-1 > front-task-definition.json
-        # aws ecs describe-task-definition --task-definition ${{ env.NODE_REVISION }} --region us-east-1 > node-task-definition.json
+    # - name: Download Current Task Definitions
+    #   run: |
+    #     aws ecs describe-task-definition --task-definition ${{ env.FRONT_REVISION }} --region us-east-1 > front-task-definition.json
+    #     # aws ecs describe-task-definition --task-definition ${{ env.NODE_REVISION }} --region us-east-1 > node-task-definition.json
 
-    - name: Update Task Definitions
-      run: |
-        FRONT_TASK_DEFINITION=$(cat front-task-definition.json)
-        # NODE_TASK_DEFINITION=$(cat node-task-definition.json)
+    # - name: Update Task Definitions
+    #   run: |
+    #     FRONT_TASK_DEFINITION=$(cat front-task-definition.json)
+    #     # NODE_TASK_DEFINITION=$(cat node-task-definition.json)
 
-        # Update Front task definition
-        UPDATED_FRONT_TASK_DEFINITION=$(echo "$FRONT_TASK_DEFINITION" | jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" '
-          .taskDefinition.containerDefinitions[0].image = $IMAGE'
-        )
+    #     # Update Front task definition
+    #     UPDATED_FRONT_TASK_DEFINITION=$(echo "$FRONT_TASK_DEFINITION" | jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" '
+    #       .taskDefinition.containerDefinitions[0].image = $IMAGE'
+    #     )
 
-        # # Update Node task definition
-        # UPDATED_NODE_TASK_DEFINITION=$(echo "$NODE_TASK_DEFINITION" | jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}" '
-        #   .taskDefinition.containerDefinitions[0].image = $IMAGE'
-        # )
+    #     # # Update Node task definition
+    #     # UPDATED_NODE_TASK_DEFINITION=$(echo "$NODE_TASK_DEFINITION" | jq --arg IMAGE "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}" '
+    #     #   .taskDefinition.containerDefinitions[0].image = $IMAGE'
+    #     # )
 
-        # Register updated task definitions
-        echo "$UPDATED_FRONT_TASK_DEFINITION" > updated-front-task-definition.json
-        # echo "$UPDATED_NODE_TASK_DEFINITION" > updated-node-task-definition.json
+    #     # Register updated task definitions
+    #     echo "$UPDATED_FRONT_TASK_DEFINITION" > updated-front-task-definition.json
+    #     # echo "$UPDATED_NODE_TASK_DEFINITION" > updated-node-task-definition.json
 
-        aws ecs register-task-definition --cli-input-json file://updated-front-task-definition.json
-        # aws ecs register-task-definition --cli-input-json file://updated-node-task-definition.json
+    #     aws ecs register-task-definition --cli-input-json file://updated-front-task-definition.json
+    #     # aws ecs register-task-definition --cli-input-json file://updated-node-task-definition.json
 
-    - name: Update ECS Services
-      run: |
-        # Update ECS services to use the new task definition
-        aws ecs update-service --cluster Cluster --service Front --force-new-deployment --region us-east-1
-        # aws ecs update-service --cluster Cluster --service Node --force-new-deployment --region us-east-1
+    # - name: Update ECS Services
+    #   run: |
+    #     # Update ECS services to use the new task definition
+    #     aws ecs update-service --cluster Cluster --service Front --force-new-deployment --region us-east-1
+    #     # aws ecs update-service --cluster Cluster --service Node --force-new-deployment --region us-east-1
