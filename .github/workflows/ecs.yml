@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       increment_major:
-        description: "Increment major version for both client and server"
+        description: "Major"
         required: false
         default: "false"
         type: boolean
       increment_minor:
-        description: "Increment minor version for both client and server"
+        description: "Minor"
         required: false
         default: "false"
         type: boolean
       increment_patch:
-        description: "Increment patch version for both client and server"
+        description: "Patch"
         required: false
         default: "true"  # Default to true to ensure there's always a version increment
         type: boolean
