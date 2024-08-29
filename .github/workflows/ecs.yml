@@ -125,30 +125,48 @@ jobs:
         aws ecs describe-task-definition \
             --task-definition FRONT \
             --region us-east-1 \
-            --query "taskDefinition" > task-definition.json
+            --query "taskDefinition" > front-task-definition.json
+        aws ecs describe-task-definition \
+            --task-definition Node \
+            --region us-east-1 \
+            --query "taskDefinition" > node-task-definition.json
 
-  
     - name: Update task definition with new image
       id: update-task
       run: |
         jq --arg IMAGE_URI "975050059495.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" \
-          '.containerDefinitions[0].image = $IMAGE_URI' task-definition.json > new-task-definition.json
+          '.containerDefinitions[0].image = $IMAGE_URI' front-task-definition.json > new-front-task-definition.json
+        jq --arg IMAGE_URI "975050059495.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}" \
+          '.containerDefinitions[0].image = $IMAGE_URI' node-task-definition.json > new-node-task-definition.json
 
-    - name: Register new task definition
-      id: register-task
+    - name: Register new task definitions
+      id: register-tasks
       run: |
-        NEW_TASK_ARN=$(aws ecs register-task-definition \
-          --cli-input-json file://new-task-definition.json \
+        FRONT_TASK_ARN=$(aws ecs register-task-definition \
+          --cli-input-json file://new-front-task-definition.json \
           --output text \
-          --query "taskDefinition.taskDefinitionArn" )
-        echo "TASK_DEFINITION_ARN=$NEW_TASK_ARN" >> $GITHUB_ENV
+          --query "taskDefinition.taskDefinitionArn")
+        echo "FRONT_TASK_DEFINITION_ARN=$FRONT_TASK_ARN" >> $GITHUB_ENV
+        
+        NODE_TASK_ARN=$(aws ecs register-task-definition \
+          --cli-input-json file://new-node-task-definition.json \
+          --output text \
+          --query "taskDefinition.taskDefinitionArn")
+        echo "NODE_TASK_DEFINITION_ARN=$NODE_TASK_ARN" >> $GITHUB_ENV
 
-    - name: Update ECS Service with New Task Definition
+    - name: Update ECS Services with New Task Definitions
       run: |
         aws ecs update-service \
           --cluster Cluster \
           --service Front \
-          --task-definition ${{ env.TASK_DEFINITION_ARN }} \
+          --task-definition ${{ env.FRONT_TASK_DEFINITION_ARN }} \
+          --force-new-deployment \
+          --region ${{ secrets.AWS_REGION }}
+
+        aws ecs update-service \
+          --cluster Cluster \
+          --service Node \
+          --task-definition ${{ env.NODE_TASK_DEFINITION_ARN }} \
           --force-new-deployment \
           --region ${{ secrets.AWS_REGION }}
 
