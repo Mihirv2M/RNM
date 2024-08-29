@@ -118,8 +118,10 @@ jobs:
         aws ecs describe-task-definition \
             --task-definition FRONT \
             --region us-east-1 \
-            --query "taskDefinition" > front-task-definition.json \
-            cat front-task-definition.json
+            --query "taskDefinition" > front-task-definition.json 
+    -  name: check the file
+       run : |
+          cat front-task-definition.json
         
     - name: Update client image in Task Definition
       run: |
