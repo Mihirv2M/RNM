@@ -3,20 +3,22 @@ name: CI/CD ECS Pipeline
 on:
   workflow_dispatch:
     inputs:
-      version_type:
-        description: "Which part of the version to increment: major, minor, or patch"
-        required: true
-        default: "patch"
-      deploy_client:
-        description: "Deploy the client image?"
-        required: true
+      version_major:
+        description: "Increment the major version?"
+        required: false
         default: false
         type: boolean
-      deploy_server:
-        description: "Deploy the server image?"
-        required: true
+      version_minor:
+        description: "Increment the minor version?"
+        required: false
         default: false
         type: boolean
+      version_patch:
+        description: "Increment the patch version?"
+        required: false
+        default: true
+        type: boolean
+
 
 jobs:
   build-and-deploy:
@@ -36,6 +38,23 @@ jobs:
     - name: Log in to Amazon ECR
       run: |
        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
+
+    - name: Validate Version Selection
+      run: |
+        if [ ${{ github.event.inputs.version_major }} = "true" ] && [ ${{ github.event.inputs.version_minor }} = "true" ]; then
+          echo "Only one version increment type (major, minor, patch) can be selected."
+          exit 1
+        fi
+        
+        if [ ${{ github.event.inputs.version_major }} = "true" ] && [ ${{ github.event.inputs.version_patch }} = "true" ]; then
+          echo "Only one version increment type (major, minor, patch) can be selected."
+          exit 1
+        fi
+        
+        if [ ${{ github.event.inputs.version_minor }} = "true" ] && [ ${{ github.event.inputs.version_patch }} = "true" ]; then
+          echo "Only one version increment type (major, minor, patch) can be selected."
+          exit 1
+        fi
        
     - name: Get ECR Client Image Tags
       id: get_client_tags
@@ -77,31 +96,22 @@ jobs:
       id: increment_client_version
       run: |
         LATEST_CLIENT_VERSION=${{ env.LATEST_CLIENT_VERSION }}
-        VERSION_TYPE=${{ github.event.inputs.version_type }}
-
+        
         # Strip the "v" prefix and split into major, minor, patch
         CLIENT_VERSION_NUMBER=${LATEST_CLIENT_VERSION#v}
         IFS='.' read -r MAJOR MINOR PATCH <<< "$CLIENT_VERSION_NUMBER"
 
-        # Increment the appropriate version part
-        case $VERSION_TYPE in
-          major)
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-            ;;
-          minor)
-            MINOR=$((MINOR + 1))
-            PATCH=0
-            ;;
-          patch)
-            PATCH=$((PATCH + 1))
-            ;;
-          *)
-            echo "Invalid version_type: $VERSION_TYPE"
-            exit 1
-            ;;
-        esac
+        # Determine which version to increment
+        if [ ${{ github.event.inputs.version_major }} = "true" ]; then
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+          PATCH=0
+        elif [ ${{ github.event.inputs.version_minor }} = "true" ]; then
+          MINOR=$((MINOR + 1))
+          PATCH=0
+        elif [ ${{ github.event.inputs.version_patch }} = "true" ]; then
+          PATCH=$((PATCH + 1))
+        fi
 
         NEW_CLIENT_VERSION="v$MAJOR.$MINOR.$PATCH"
         echo "NEW_CLIENT_VERSION=$NEW_CLIENT_VERSION" >> $GITHUB_ENV
@@ -111,31 +121,22 @@ jobs:
       id: increment_server_version
       run: |
         LATEST_SERVER_VERSION=${{ env.LATEST_SERVER_VERSION }}
-        VERSION_TYPE=${{ github.event.inputs.version_type }}
-
+        
         # Strip the "v" prefix and split into major, minor, patch
         SERVER_VERSION_NUMBER=${LATEST_SERVER_VERSION#v}
         IFS='.' read -r MAJOR MINOR PATCH <<< "$SERVER_VERSION_NUMBER"
 
-        # Increment the appropriate version part
-        case $VERSION_TYPE in
-          major)
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-            ;;
-          minor)
-            MINOR=$((MINOR + 1))
-            PATCH=0
-            ;;
-          patch)
-            PATCH=$((PATCH + 1))
-            ;;
-          *)
-            echo "Invalid version_type: $VERSION_TYPE"
-            exit 1
-            ;;
-        esac
+        # Determine which version to increment
+        if [ ${{ github.event.inputs.version_major }} = "true" ]; then
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+          PATCH=0
+        elif [ ${{ github.event.inputs.version_minor }} = "true" ]; then
+          MINOR=$((MINOR + 1))
+          PATCH=0
+        elif [ ${{ github.event.inputs.version_patch }} = "true" ]; then
+          PATCH=$((PATCH + 1))
+        fi
 
         NEW_SERVER_VERSION="v$MAJOR.$MINOR.$PATCH"
         echo "NEW_SERVER_VERSION=$NEW_SERVER_VERSION" >> $GITHUB_ENV
@@ -146,14 +147,12 @@ jobs:
         docker compose build
 
     - name: Tag and push Client Docker image to ECR
-      if: ${{ github.event.inputs.deploy_client }}
       run: |
         # Tag and push client image
         docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}
 
     - name: Tag and push Server Docker image to ECR
-      if: ${{ github.event.inputs.deploy_server }}
       run: |
         # Tag and push server image
         docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
