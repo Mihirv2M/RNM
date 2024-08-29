@@ -39,23 +39,6 @@ jobs:
       run: |
        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975050059495.dkr.ecr.us-east-1.amazonaws.com
 
-    - name: Validate Version Selection
-      run: |
-        if [ ${{ github.event.inputs.version_major }} = "true" ] && [ ${{ github.event.inputs.version_minor }} = "true" ]; then
-          echo "Only one version increment type (major, minor, patch) can be selected."
-          exit 1
-        fi
-        
-        if [ ${{ github.event.inputs.version_major }} = "true" ] && [ ${{ github.event.inputs.version_patch }} = "true" ]; then
-          echo "Only one version increment type (major, minor, patch) can be selected."
-          exit 1
-        fi
-        
-        if [ ${{ github.event.inputs.version_minor }} = "true" ] && [ ${{ github.event.inputs.version_patch }} = "true" ]; then
-          echo "Only one version increment type (major, minor, patch) can be selected."
-          exit 1
-        fi
-       
     - name: Get ECR Client Image Tags
       id: get_client_tags
       run: |
@@ -101,18 +84,12 @@ jobs:
         CLIENT_VERSION_NUMBER=${LATEST_CLIENT_VERSION#v}
         IFS='.' read -r MAJOR MINOR PATCH <<< "$CLIENT_VERSION_NUMBER"
 
-        # Determine which version to increment
-        if [ ${{ github.event.inputs.version_major }} = "true" ]; then
-          MAJOR=$((MAJOR + 1))
-          MINOR=0
-          PATCH=0
-        elif [ ${{ github.event.inputs.version_minor }} = "true" ]; then
-          MINOR=$((MINOR + 1))
-          PATCH=0
-        elif [ ${{ github.event.inputs.version_patch }} = "true" ]; then
-          PATCH=$((PATCH + 1))
-        fi
+        # Increment the appropriate version parts
+        [ ${{ github.event.inputs.increment_major }} = "true" ] && MAJOR=$((MAJOR + 1))
+        [ ${{ github.event.inputs.increment_minor }} = "true" ] && MINOR=$((MINOR + 1))
+        [ ${{ github.event.inputs.increment_patch }} = "true" ] && PATCH=$((PATCH + 1))
 
+        # Ensure proper version number format
         NEW_CLIENT_VERSION="v$MAJOR.$MINOR.$PATCH"
         echo "NEW_CLIENT_VERSION=$NEW_CLIENT_VERSION" >> $GITHUB_ENV
         echo "New client version: $NEW_CLIENT_VERSION"
@@ -126,18 +103,12 @@ jobs:
         SERVER_VERSION_NUMBER=${LATEST_SERVER_VERSION#v}
         IFS='.' read -r MAJOR MINOR PATCH <<< "$SERVER_VERSION_NUMBER"
 
-        # Determine which version to increment
-        if [ ${{ github.event.inputs.version_major }} = "true" ]; then
-          MAJOR=$((MAJOR + 1))
-          MINOR=0
-          PATCH=0
-        elif [ ${{ github.event.inputs.version_minor }} = "true" ]; then
-          MINOR=$((MINOR + 1))
-          PATCH=0
-        elif [ ${{ github.event.inputs.version_patch }} = "true" ]; then
-          PATCH=$((PATCH + 1))
-        fi
+        # Increment the appropriate version parts
+        [ ${{ github.event.inputs.increment_major }} = "true" ] && MAJOR=$((MAJOR + 1))
+        [ ${{ github.event.inputs.increment_minor }} = "true" ] && MINOR=$((MINOR + 1))
+        [ ${{ github.event.inputs.increment_patch }} = "true" ] && PATCH=$((PATCH + 1))
 
+        # Ensure proper version number format
         NEW_SERVER_VERSION="v$MAJOR.$MINOR.$PATCH"
         echo "NEW_SERVER_VERSION=$NEW_SERVER_VERSION" >> $GITHUB_ENV
         echo "New server version: $NEW_SERVER_VERSION"
