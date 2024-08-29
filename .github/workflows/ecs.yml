@@ -3,20 +3,20 @@ name: CI/CD ECS Pipeline
 on:
   workflow_dispatch:
     inputs:
-      version_major:
-        description: "Increment the major version?"
+      increment_major:
+        description: "Increment major version for both client and server"
         required: false
-        default: false
+        default: "false"
         type: boolean
-      version_minor:
-        description: "Increment the minor version?"
+      increment_minor:
+        description: "Increment minor version for both client and server"
         required: false
-        default: false
+        default: "false"
         type: boolean
-      version_patch:
-        description: "Increment the patch version?"
+      increment_patch:
+        description: "Increment patch version for both client and server"
         required: false
-        default: true
+        default: "true"  # Default to true to ensure there's always a version increment
         type: boolean
 
 
