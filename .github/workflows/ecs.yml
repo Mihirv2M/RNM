@@ -112,13 +112,6 @@ jobs:
         docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
 
-    # - name: Get FRONT Task Definition
-    #   run: |
-    #     aws ecs describe-task-definition --task-definition FRONT --query 'taskDefinition' > front-task-definition.json
-
-    # - name: Get Node Task Definition
-    #   run: |
-    #     aws ecs describe-task-definition --task-definition Node --query 'taskDefinition' > node-task-definition.json
     - name: Download client task definition
       id: download-client-task
       run: |
@@ -130,49 +123,21 @@ jobs:
     - name: Update client image in Task Definition
       run: |
         jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" \
-           '.containerDefinitions[0].image = $new_image' front-task-definition.json > task-definition-updated.json
+           '.containerDefinitions[0].image = $new_image' front-task-definition.json > task-definition-updated.json \
+           cat task-definition-updated.json
 
     - name: Deploy Amazon ECS task definition
       run: |
         aws ecs register-task-definition \
           --region us-east-1 \
           --cli-input-json file://task-definition-updated.json
-
-    # - name: Download server task definition
-    #   id: download-server-task
-    #   run: |
-    #    aws ecs describe-task-definition \
-    #         --task-definition Node \
-    #         --region us-east-1 \
-    #         --query "taskDefinition" > server-task-definition.json
-            
-    # - name: Server image in Task Definiton
-    #   id: server-def
-    #   uses: aws-actions/amazon-ecs-render-task-definition@v1
-    #   with:
-    #    task-definition: server-task-definition.json 
-    #    container-name: Node
-    #    image: 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
-
-    # - name: Deploy Amazon ECS task definition
-    #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
-    #   with:
-    #    task-definition: server-task-definition.json
-    #    service: Node
-    #    cluster: Cluster
   
     - name: Cleanup
       run: |
           rm front-task-def.json node-task-def.json front-task-def-updated.json node-task-def-updated.json
 
             
-        # aws ecs update-service \
-        #   --cluster Cluster \
-        #   --service Node \
-        #   --task-definition ${{ env.NODE_TASK_DEFINITION_ARN }} \
-        #   --force-new-deployment \
-        #   --region ${{ secrets.AWS_REGION }}
-
+       
     # - name: Register Updated FRONT Task Definition
     #   run: |
     #     aws ecs register-task-definition --cli-input-json file://updated-front-task-definition.json
