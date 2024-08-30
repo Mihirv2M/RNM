@@ -6,17 +6,17 @@ on:
       increment_major:
         description: "Major"
         required: false
-        default: "false"
+        default: false
         type: boolean
       increment_minor:
         description: "Minor"
         required: false
-        default: "false"
+        default: false
         type: boolean
       increment_patch:
         description: "Patch"
         required: false
-        default: "true"  # Default to true to ensure there's always a version increment
+        default: true  # Default to true to ensure there's always a version increment
         type: boolean
 
 jobs:
