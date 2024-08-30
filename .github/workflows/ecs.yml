@@ -112,7 +112,7 @@ jobs:
         docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
 
-    - name: Download client task definition
+    - name: Download Client task definition
       id: download-client-task
       run: |
         aws ecs describe-task-definition \
@@ -120,7 +120,7 @@ jobs:
             --region us-east-1 \
             --query "taskDefinition" > front-task-definition.json 
 
-    - name: Download client task definition
+    - name: Download Server task definition
       id: download-server-task
       run: |
         aws ecs describe-task-definition \
@@ -129,17 +129,17 @@ jobs:
             --query "taskDefinition" > Node-task-definition.json 
             
            
-    - name: Update client image in Task Definition
+    - name: Update Client image in Task Definition
       run: |
         jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" \
            '.containerDefinitions[0].image = $new_image' front-task-definition.json > front-task-definition-updated.json
 
-    - name: Update server image in Task Definition
+    - name: Update Server image in Task Definition
       run: |
         jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}" \
            '.containerDefinitions[0].image = $new_image' Node-task-definition.json > Node-task-definition-updated.json
              
-    - name: Deploy Server Amazon ECS task definition
+    - name: Deploy Client Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
       with:
        task-definition: front-task-definition-updated.json
