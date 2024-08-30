@@ -27,6 +27,11 @@ const server = express();
 server.use(cors());
 server.use(bodyParser.json());
 
+// Root route: returns "Hello World"
+server.get('/', (req, res) => {
+    res.status(200).send('Hello World');
+});
+
 // Health check route for ECS
 server.get('/health', (req, res) => {
     res.status(200).json({ status: 'healthy' });
