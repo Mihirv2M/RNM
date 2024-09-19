@@ -22,9 +22,8 @@ services:
   #   image: server
   #   ports:
   #     - "8080:8080"
-
-    networks:
-      - mongodb_network
+    # networks:
+    #   - mongodb_network
       
 volumes:
   mongodb:
