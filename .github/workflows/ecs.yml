@@ -42,8 +42,8 @@ jobs:
       id: get_tags
       run: |
         # Get the latest tags for client and server images
-        CLIENT_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/client --query 'imageDetails[*].imageTags' --output json)
-        SERVER_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/server --query 'imageDetails[*].imageTags' --output json)
+        CLIENT_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/react --query 'imageDetails[*].imageTags' --output json)
+        SERVER_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/backend --query 'imageDetails[*].imageTags' --output json)
 
         # Extract valid semantic version tags
         CLIENT_TAGS=$(echo $CLIENT_IMAGE_TAGS | jq -r '.[][]' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
@@ -105,51 +105,51 @@ jobs:
     - name: Tag and push Docker images to ECR
       run: |
         # Tag and push client image
-        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}
+        docker tag client:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/react:${{ env.NEW_CLIENT_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/react:${{ env.NEW_CLIENT_VERSION }}
 
         # Tag and push server image
-        docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}
+        docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/backend:${{ env.NEW_SERVER_VERSION }}
+        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/backend:${{ env.NEW_SERVER_VERSION }}
 
     - name: Download Client task definition
       id: download-client-task
       run: |
         aws ecs describe-task-definition \
-            --task-definition FRONT \
+            --task-definition REACT \
             --region us-east-1 \
-            --query "taskDefinition" > front-task-definition.json 
+            --query "taskDefinition" > react-task-definition.json 
 
     - name: Download Server task definition
       id: download-server-task
       run: |
         aws ecs describe-task-definition \
-            --task-definition Node \
+            --task-definition BACKEND \
             --region us-east-1 \
-            --query "taskDefinition" > Node-task-definition.json 
+            --query "taskDefinition" > backend-task-definition.json 
             
            
     - name: Update Client image in Task Definition
       run: |
-        jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/client:${{ env.NEW_CLIENT_VERSION }}" \
-           '.containerDefinitions[0].image = $new_image' front-task-definition.json > front-task-definition-updated.json
+        jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/react:${{ env.NEW_CLIENT_VERSION }}" \
+           '.containerDefinitions[0].image = $new_image' react-task-definition.json > react-task-definition-updated.json
 
     - name: Update Server image in Task Definition
       run: |
-        jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/server:${{ env.NEW_SERVER_VERSION }}" \
-           '.containerDefinitions[0].image = $new_image' Node-task-definition.json > Node-task-definition-updated.json
+        jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/backend:${{ env.NEW_SERVER_VERSION }}" \
+           '.containerDefinitions[0].image = $new_image' backend-task-definition.json > backend-task-definition-updated.json
              
     - name: Deploy Client Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
       with:
-       task-definition: front-task-definition-updated.json
-       service: FRONT
+       task-definition: react-task-definition-updated.json
+       service: REACT
        cluster: Cluster 
        
     - name: Deploy Server Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
       with:
-       task-definition: Node-task-definition-updated.json
-       service: NODE
+       task-definition: backend-task-definition-updated.json
+       service: BACKEND
        cluster: Cluster   
        
