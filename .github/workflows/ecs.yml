@@ -43,11 +43,11 @@ jobs:
       run: |
         # Get the latest tags for client and server images
         CLIENT_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/react --query 'imageDetails[*].imageTags' --output json)
-        SERVER_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/backend --query 'imageDetails[*].imageTags' --output json)
+        # SERVER_IMAGE_TAGS=$(aws ecr describe-images --repository-name mihirv21/backend --query 'imageDetails[*].imageTags' --output json)
 
         # Extract valid semantic version tags
         CLIENT_TAGS=$(echo $CLIENT_IMAGE_TAGS | jq -r '.[][]' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
-        SERVER_TAGS=$(echo $SERVER_IMAGE_TAGS | jq -r '.[][]' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
+        # SERVER_TAGS=$(echo $SERVER_IMAGE_TAGS | jq -r '.[][]' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
 
         if [ -z "$CLIENT_TAGS" ]; then
           echo "No valid semantic version tags found for client."
@@ -58,14 +58,14 @@ jobs:
           echo "Latest client version found: $LATEST_CLIENT_VERSION"
         fi
 
-        if [ -z "$SERVER_TAGS" ]; then
-          echo "No valid semantic version tags found for server."
-          echo "LATEST_SERVER_VERSION=v0.0.0" >> $GITHUB_ENV
-        else
-          LATEST_SERVER_VERSION=$(echo "$SERVER_TAGS" | tail -n 1)
-          echo "LATEST_SERVER_VERSION=$LATEST_SERVER_VERSION" >> $GITHUB_ENV
-          echo "Latest server version found: $LATEST_SERVER_VERSION"
-        fi
+        # if [ -z "$SERVER_TAGS" ]; then
+        #   echo "No valid semantic version tags found for server."
+        #   echo "LATEST_SERVER_VERSION=v0.0.0" >> $GITHUB_ENV
+        # else
+        #   LATEST_SERVER_VERSION=$(echo "$SERVER_TAGS" | tail -n 1)
+        #   echo "LATEST_SERVER_VERSION=$LATEST_SERVER_VERSION" >> $GITHUB_ENV
+        #   echo "Latest server version found: $LATEST_SERVER_VERSION"
+        # fi
 
     - name: Increment Versions
       id: increment_versions
@@ -94,9 +94,9 @@ jobs:
         echo "New client version: $NEW_CLIENT_VERSION"
 
         # Increment server version
-        NEW_SERVER_VERSION=$(increment_version "${{ env.LATEST_SERVER_VERSION }}" "server")
-        echo "NEW_SERVER_VERSION=$NEW_SERVER_VERSION" >> $GITHUB_ENV
-        echo "New server version: $NEW_SERVER_VERSION"
+        # NEW_SERVER_VERSION=$(increment_version "${{ env.LATEST_SERVER_VERSION }}" "server")
+        # echo "NEW_SERVER_VERSION=$NEW_SERVER_VERSION" >> $GITHUB_ENV
+        # echo "New server version: $NEW_SERVER_VERSION"
 
     - name: Build Docker images
       run: |
@@ -109,8 +109,8 @@ jobs:
         docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/react:${{ env.NEW_CLIENT_VERSION }}
 
         # Tag and push server image
-        docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/backend:${{ env.NEW_SERVER_VERSION }}
-        docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/backend:${{ env.NEW_SERVER_VERSION }}
+        # docker tag server:latest 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/backend:${{ env.NEW_SERVER_VERSION }}
+        # docker push 975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/backend:${{ env.NEW_SERVER_VERSION }}
 
     - name: Download Client task definition
       id: download-client-task
@@ -120,13 +120,13 @@ jobs:
             --region us-east-1 \
             --query "taskDefinition" > react-task-definition.json 
 
-    - name: Download Server task definition
-      id: download-server-task
-      run: |
-        aws ecs describe-task-definition \
-            --task-definition BACKEND \
-            --region us-east-1 \
-            --query "taskDefinition" > backend-task-definition.json 
+    # - name: Download Server task definition
+    #   id: download-server-task
+    #   run: |
+    #     aws ecs describe-task-definition \
+    #         --task-definition BACKEND \
+    #         --region us-east-1 \
+    #         --query "taskDefinition" > backend-task-definition.json 
             
            
     - name: Update Client image in Task Definition
@@ -134,10 +134,10 @@ jobs:
         jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/react:${{ env.NEW_CLIENT_VERSION }}" \
            '.containerDefinitions[0].image = $new_image' react-task-definition.json > react-task-definition-updated.json
 
-    - name: Update Server image in Task Definition
-      run: |
-        jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/backend:${{ env.NEW_SERVER_VERSION }}" \
-           '.containerDefinitions[0].image = $new_image' backend-task-definition.json > backend-task-definition-updated.json
+    # - name: Update Server image in Task Definition
+    #   run: |
+    #     jq --arg new_image "975050059495.dkr.ecr.us-east-1.amazonaws.com/mihirv21/backend:${{ env.NEW_SERVER_VERSION }}" \
+    #        '.containerDefinitions[0].image = $new_image' backend-task-definition.json > backend-task-definition-updated.json
              
     - name: Deploy Client Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
@@ -146,10 +146,10 @@ jobs:
        service: REACT
        cluster: Cluster 
        
-    - name: Deploy Server Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
-      with:
-       task-definition: backend-task-definition-updated.json
-       service: BACKEND
-       cluster: Cluster   
+    # - name: Deploy Server Amazon ECS task definition
+    #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
+    #   with:
+    #    task-definition: backend-task-definition-updated.json
+    #    service: BACKEND
+    #    cluster: Cluster   
        
