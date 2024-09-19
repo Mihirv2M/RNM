@@ -7,7 +7,6 @@ services:
       context: react-app/
       dockerfile: Dockerfile
     image: client
-
     ports:
       - "3000:3000"
     volumes:
@@ -15,14 +14,14 @@ services:
     networks:
       - mongodb_network
 
-  node-server: 
-    container_name: server
-    build:  
-      context: node-server/
-      dockerfile: Dockerfile
-    image: server
-    ports:
-      - "8080:8080"
+  # node-server: 
+  #   container_name: server
+  #   build:  
+  #     context: node-server/
+  #     dockerfile: Dockerfile
+  #   image: server
+  #   ports:
+  #     - "8080:8080"
 
     networks:
       - mongodb_network
