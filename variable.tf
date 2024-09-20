@@ -62,6 +62,7 @@ variable "nalb_tg_name" {
 }
 variable "cluster_name" {
   type = string
+  default = "Cluster"
 }
 variable "asg_name" {
   type = string
@@ -145,6 +146,7 @@ variable "td_rp_osf" {
 }
 variable "ecs_s" {
   type = string
+  default = "REACT"
 }
 variable "ecs_lt" {
   type = string
@@ -167,10 +169,6 @@ variable "ecr_name" {
   default = "mihirv21/react"
 }
 variable "Service" {
-  typr = string
-  default = $Service
-}
-variable "Cluster" {
   type = string
-  default = $Cluster
+  default = "REACT"
 }
