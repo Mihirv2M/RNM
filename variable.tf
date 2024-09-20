@@ -170,9 +170,9 @@ variable "ecr_name" {
 }
 variable "Service" {
   typr = string
-  default = ${{ env.Service }}
+  default = $Service
 }
 variable "Cluster" {
   type = string
-  default = ${{ env.Cluster }}
+  default = $Cluster
 }
