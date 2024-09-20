@@ -40,4 +40,4 @@ jobs:
         run: |
           terraform apply -auto-approve \
           -var "cluster_name=${{ env.ECS_CLUSTER_NAME }}" \
-          -var "ecs_s=${{ env.ECS_SERVICE_NAME }}"
+          -var "service_name=${{ env.ECS_SERVICE_NAME }}"
