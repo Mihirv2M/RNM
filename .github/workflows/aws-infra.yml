@@ -1,4 +1,4 @@
-name: Hello
+name: AWS Infrastructure 
 
 on: 
   workflow_dispatch
