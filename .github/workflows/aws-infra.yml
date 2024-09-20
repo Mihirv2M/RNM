@@ -1,7 +1,16 @@
 name: AWS Infrastructure 
 
 on: 
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: "Cluster_Name"
+        required: true
+        default: "Node_Cluster"
+      service_name:
+        description: "Service Name"
+        required: true
+        default: "Node"
 
 jobs:
     terraform:
@@ -35,8 +44,8 @@ jobs:
 
       - name: Terraform Apply
         env:
-          ECS_CLUSTER_NAME: Node_Cluster  
-          ECS_SERVICE_NAME: Node   
+          ECS_CLUSTER_NAME: ${{ github.event.inputs.cluster_name }}  
+          ECS_SERVICE_NAME: ${{ github.event.inputs.service_name }}
         run: |
           terraform apply -auto-approve \
           -var "cluster_name=${{ env.ECS_CLUSTER_NAME }}" \
