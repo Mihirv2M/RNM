@@ -35,8 +35,8 @@ jobs:
 
       - name: Terraform Apply
         env:
-          ECS_CLUSTER_NAME: My_Cluster  # Define ECS Cluster name here
-          ECS_SERVICE_NAME: React   # Define ECS Service name here
+          ECS_CLUSTER_NAME: My_Cluster  
+          ECS_SERVICE_NAME: React   
         run: |
           terraform apply -auto-approve \
           -var "cluster_name=${{ env.ECS_CLUSTER_NAME }}" \
