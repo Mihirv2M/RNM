@@ -1,2 +1,0 @@
-Service = "REACT"
-Cluster = "Cluster"
