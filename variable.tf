@@ -146,7 +146,6 @@ variable "td_rp_osf" {
 }
 variable "ecs_s" {
   type = string
-  default = "REACT"
 }
 variable "ecs_lt" {
   type = string
