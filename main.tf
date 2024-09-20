@@ -259,7 +259,7 @@ resource "aws_ecs_task_definition"  "REACT" {
 
 resource "aws_ecs_service" "REACT" {
    #${var.ecs_s}
-    name                    = var.ecs_s
+    name                    = var.service_name
     cluster                 = aws_ecs_cluster.Cluster.id
     task_definition         = aws_ecs_task_definition.REACT.arn
     launch_type             = var.ecs_lt
