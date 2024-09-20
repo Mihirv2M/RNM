@@ -62,7 +62,6 @@ variable "nalb_tg_name" {
 }
 variable "cluster_name" {
   type = string
-  default = "Cluster"
 }
 variable "asg_name" {
   type = string
