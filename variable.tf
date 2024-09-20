@@ -172,7 +172,7 @@ variable "Service" {
   type = string
   default = "REACT"
 }
-variable "ecs_s"
+variable "service_name" {
   type = string
 }
 
