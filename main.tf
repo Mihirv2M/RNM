@@ -224,7 +224,8 @@ resource "aws_launch_template" "React_Lt" {
 
 resource "aws_ecs_cluster" "Cluster" {
     
-    name    = ${var.cluster_name}
+    name    = "${TF_VAR_Cluster}"
+
     
     setting {
 
@@ -237,7 +238,7 @@ resource "aws_ecs_cluster" "Cluster" {
 
 //===== REACT TASK DEFINITION CREATE =====\\
 
-resource "aws_ecs_task_definition" var.Cluster {
+resource "aws_ecs_task_definition"  "REACT" {
     family                          = var.ecs_td
     execution_role_arn              = var.ecs_td_role
     network_mode                    = "awsvpc"
@@ -257,8 +258,8 @@ resource "aws_ecs_task_definition" var.Cluster {
 //===== REACT ECS SERVICE CREATE =====\\
 
 resource "aws_ecs_service" "REACT" {
-   
-    name                    = ${var.ecs_s}
+   #${var.ecs_s}
+    name                    = "${TF_VAR_Service}"
     cluster                 = aws_ecs_cluster.Cluster.id
     task_definition         = aws_ecs_task_definition.REACT.arn
     launch_type             = var.ecs_lt
