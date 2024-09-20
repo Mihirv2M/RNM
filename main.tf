@@ -224,7 +224,7 @@ resource "aws_launch_template" "React_Lt" {
 
 resource "aws_ecs_cluster" "Cluster" {
     
-    name    = "${TF_VAR_Cluster}"
+    name = "${TF_VAR_Cluster}"
 
     
     setting {
