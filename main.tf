@@ -222,7 +222,7 @@ resource "aws_launch_template" "React_Lt" {
 
 //===== ECS CLUSTER CREATE =====\\
 
-resource "aws_ecs_cluster" ${{ env.Cluster }} {
+resource "aws_ecs_cluster" "Cluster" {
     
     name    = ${var.cluster_name}
     
@@ -256,7 +256,7 @@ resource "aws_ecs_task_definition" var.Cluster {
 
 //===== REACT ECS SERVICE CREATE =====\\
 
-resource "aws_ecs_service" var.Service {
+resource "aws_ecs_service" "REACT" {
    
     name                    = ${var.ecs_s}
     cluster                 = aws_ecs_cluster.Cluster.id
