@@ -168,3 +168,11 @@ variable "ecr_name" {
   type = string
   default = "mihirv21/react"
 }
+variable "Service" {
+  typr = string
+  default = ${{ env.Service }}
+}
+variable "Cluster" {
+  type = string
+  default = ${{ env.Cluster }}
+}
