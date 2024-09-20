@@ -120,6 +120,9 @@ resource "aws_security_group" "Public_SG" {
     cidr_blocks             = [var.aws_rt_cb]
 
     }
+    tags = {
+      Name = var.asg_name
+    }
 }
 
 //===== REACT LOAD BALANCER CREATE =====\\
@@ -192,6 +195,8 @@ resource "aws_lb_target_group" "React_TG" {
 resource "aws_ecr_repository" "REACT" {
   
     name = var.ecr_name
+    force_delete = true
+
     
 }
 
