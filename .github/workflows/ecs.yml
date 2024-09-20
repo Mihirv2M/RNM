@@ -143,8 +143,8 @@ jobs:
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
       with:
        task-definition: react-task-definition-updated.json
-       service: REACT
-       cluster: Cluster 
+       service: ${{ env.Service }}
+       cluster: ${{ env.Cluster }}
        
     # - name: Deploy Server Amazon ECS task definition
     #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1 
