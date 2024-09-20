@@ -172,4 +172,12 @@ variable "Service" {
   type = string
   default = "REACT"
 }
+variable "cluster_name" {
+  type = string
+  default = "${TF_VAR_CLUSTER}"
+}
+variable "service_name" {
+  type = string
+  default = "${TF_VAR_SERVICE}"
+}
 
