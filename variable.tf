@@ -62,7 +62,7 @@ variable "nalb_tg_name" {
 }
 variable "cluster_name" {
   type = string
-  default = "Cluster"
+
 }
 variable "asg_name" {
   type = string
@@ -172,12 +172,8 @@ variable "Service" {
   type = string
   default = "REACT"
 }
-variable "cluster_name" {
+variable "ecs_s"
   type = string
-  default = "${TF_VAR_CLUSTER}"
 }
-variable "service_name" {
-  type = string
-  default = "${TF_VAR_SERVICE}"
-}
+
 
