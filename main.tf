@@ -237,7 +237,7 @@ resource "aws_ecs_cluster" ${{ env.Cluster }} {
 
 //===== REACT TASK DEFINITION CREATE =====\\
 
-resource "aws_ecs_task_definition" "REACT" {
+resource "aws_ecs_task_definition" var.Cluster {
     family                          = var.ecs_td
     execution_role_arn              = var.ecs_td_role
     network_mode                    = "awsvpc"
@@ -256,7 +256,7 @@ resource "aws_ecs_task_definition" "REACT" {
 
 //===== REACT ECS SERVICE CREATE =====\\
 
-resource "aws_ecs_service" ${{ env.Service }} {
+resource "aws_ecs_service" var.Service {
    
     name                    = var.ecs_s
     cluster                 = aws_ecs_cluster.Cluster.id
