@@ -8,22 +8,22 @@ services:
       dockerfile: Dockerfile
     image: client
     ports:
-      - "3000:3000"
+      - "80:80"
     volumes:
       - ./react-app:/react-app   
     networks:
       - mongodb_network
 
-  # node-server: 
-  #   container_name: server
-  #   build:  
-  #     context: node-server/
-  #     dockerfile: Dockerfile
-  #   image: server
-  #   ports:
-  #     - "8080:8080"
-    # networks:
-    #   - mongodb_network
+  node-server: 
+    container_name: server
+    build:  
+      context: node-server/
+      dockerfile: Dockerfile
+    image: server
+    ports:
+      - "8080:8080"
+    networks:
+      - mongodb_network
       
 volumes:
   mongodb:
