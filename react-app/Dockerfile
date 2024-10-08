@@ -5,7 +5,8 @@ COPY package-lock.json .
 RUN npm install
 COPY . .
 EXPOSE 3000
-CMD [ "npm","run","build" ]  
+RUN npm run build
+#CMD [ "npm","run","build" ]  
 
 
 FROM nginx:1.23-alpine
