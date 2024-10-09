@@ -24,9 +24,9 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            sh 'docker ps'
-        }
-    }
+    // post {
+    //     always {
+    //         sh 'docker ps'
+    //     }
+    // }
 }
