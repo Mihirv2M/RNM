@@ -10,7 +10,12 @@ pipeline {
             }
         }
 
-
+       stage('Email Notification'){
+            mail bcc: '', body: '''Hi Welcome to Jenkins Build Complete!
+            Thanks from
+            Devops Team''', cc: '', from: '', replyTo: '', subject: 'jenkins', to: 'mihirv.brainerhub@gmail.com'
+        }
+    }
         
         stage('Build Docker Images') {
             steps {
@@ -24,16 +29,5 @@ pipeline {
                 sh 'docker compose up -d --build'
             }
         }
-        stage('Email Notification'){
-            mail bcc: '', body: '''Hi Welcome to Jenkins Build Complete!
-            Thanks from
-            Devops Team''', cc: '', from: '', replyTo: '', subject: 'jenkins', to: 'mihirv.brainerhub@gmail.com'
-        }
-    }
-
-    post {
-        always {
-            sh 'docker ps'
-        }
-    }
+ 
 }
