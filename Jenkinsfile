@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'jenkins'  // Use the label you assigned to your EC2 node
+        label 'dev'  // Use the label you assigned to your EC2 node
     }
 
     stages {
