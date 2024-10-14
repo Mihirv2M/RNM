@@ -29,8 +29,8 @@ jobs:
     
     - name: Tag image
       run: |
-        docker tag client:latest 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/client:latest
-        docker tag 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/server:latest
+        docker tag react:latest 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/client:latest
+        docker tag node:latest 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/server:latest
      
     -  name: Push Images
        run: |
