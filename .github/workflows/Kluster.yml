@@ -25,9 +25,7 @@ jobs:
     
     - name: Build and Tag Images
       run: |
-        docker build -t 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/client:latest .
-        docker build -t 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/server:latest .
-    
+        docker compose build    
     -  name: Push Images
        run: |
          docker push 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/client:latest
