@@ -6,6 +6,8 @@ services:
     build:
       context: react-app/
       dockerfile: Dockerfile
+      image: 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/client:latest
+
     ports:
       - "80:80"
     volumes:
@@ -18,6 +20,8 @@ services:
     build:  
       context: node-server/
       dockerfile: Dockerfile
+          image: 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/server:latest
+
     ports:
       - "8080:8080"
     networks:
