@@ -1,0 +1,4 @@
+name: CI/CD ECS Pipeline
+
+on:
+  workflow_dispatch:
