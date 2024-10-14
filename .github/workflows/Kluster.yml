@@ -2,3 +2,52 @@ name: CI/CD EKS Pipeline
 
 on:
   workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+
+    steps:
+    -  name: Checkout Code
+       uses: actions/checkout@3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    
+    - name: Log in to Amazon ECR
+      run: |
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 210243272865.dkr.ecr.us-east-1.amazonaws.com
+    
+    - name: Build and Tag Images
+      run: |
+        docker build -t 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/client:latest .
+        docker build -t 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/server:latest .
+    
+    -  name: Push Images
+       run: |
+         docker push 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/client:latest
+         docker push 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/server:latest
+
+    - name: Update Kube Config
+      run: |
+        aws eks update-kubeconfig --name Kluster --region us-east-1
+    
+    - name: Deploy Secrets
+      run: |
+        kubeclt apply -f react-secret.yaml
+        kubectl apply -f node-secret.yaml
+    
+    - name: Deploy Secrets
+      run: |
+        kubectl apply -f node-secret.yaml
+
+    - name: Deployment and Services
+      run: | 
+        kubectl apply -f node-deployment.yaml
+    
+   
