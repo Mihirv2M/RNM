@@ -3,13 +3,12 @@ version: '3.8'
 services:
   react-app:
     container_name: client
+    image: react
     build:
       context: react-app/
       dockerfile: Dockerfile
-      image: 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/client:latest
-
     ports:
-      - "80:80"
+      - "3000:3000"
     volumes:
       - ./react-app:/react-app   
     networks:
@@ -17,11 +16,10 @@ services:
 
   node-server: 
     container_name: server
+    image: node
     build:  
       context: node-server/
       dockerfile: Dockerfile
-          image: 210243272865.dkr.ecr.us-east-1.amazonaws.com/mihir/server:latest
-
     ports:
       - "8080:8080"
     networks:
