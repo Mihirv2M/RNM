@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-deployment
+  labels:
+    app: react
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: react
+
+  template:
+    metadata:
+      labels:
+        app: react
+
+    spec:
+      containers:
+      - name: react
+        image: mihirv21/python1app:client  # Update this to your actual React image 
+        imagePullPolicy: Always
+        
+        ports:
+        - containerPort: 3000
+
+      imagePullSecrets:
+      - name: react-secret  # Correct placement of imagePullSecrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: react-service
+
+spec:
+  selector:
+    app: react
+
+  ports:
+  - protocol: TCP
+    port: 80         # Typically, you expose a service on port 80 or 443 for HTTP/HTTPS
+    targetPort: 3000
+  type: LoadBalancer  
+  

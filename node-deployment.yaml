@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-deployment
+  labels:
+    app: node
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: node
+
+  template:
+    metadata:
+      labels:
+        app: node
+
+    spec:
+      containers:
+      - name: node
+        image: mihirv21/python1app:server  # Update this to your actual Node.js image
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+      imagePullSecrets:
+      - name: node-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-service
+  labels:
+    app: node
+
+spec:
+  selector:
+    app: node
+
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
