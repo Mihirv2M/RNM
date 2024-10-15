@@ -15,7 +15,7 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://13.60.9.114:8080/health/demo', {
+      const response = await fetch('http://aee74d1b4eaf040deb91126121971b48-1308586520.us-east-1.elb.amazonaws.com/health/demo', {
         method: 'POST',
         body: JSON.stringify(form),
         headers: {
@@ -36,7 +36,7 @@ function App() {
 
   const getUsers = async () => {
     try {
-      const response = await fetch('http://13.60.9.114:8080/test', {
+      const response = await fetch('http://aee74d1b4eaf040deb91126121971b48-1308586520.us-east-1.elb.amazonaws.com/test', {
         method: 'GET',
       });
       if (response.ok) {
