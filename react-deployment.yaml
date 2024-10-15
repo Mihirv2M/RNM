@@ -41,5 +41,5 @@ spec:
   - protocol: TCP
     port: 80         # Typically, you expose a service on port 80 or 443 for HTTP/HTTPS
     targetPort: 3000
-  type: LoadBalancer  
+  type: ClusterIP  
   
