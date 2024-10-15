@@ -48,12 +48,10 @@ jobs:
         kubectl apply -f react-secret.yaml
         kubectl apply -f node-secret.yaml
     
-    - name: Deploy Secrets
-      run: |
-        kubectl apply -f node-secret.yaml
 
     - name: Deployment and Services
       run: | 
         kubectl apply -f node-deployment.yaml
+        kubectl apply -f react-deployment.yaml
     
    
