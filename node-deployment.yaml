@@ -4,6 +4,7 @@ metadata:
   name: node-deployment
   labels:
     app: node
+  namespace: kube-system
 
 spec:
   replicas: 2
@@ -25,12 +26,12 @@ spec:
         - containerPort: 8080
       imagePullSecrets:
       - name: node-secret
-
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: node-service
+  namespace: kube-system
   labels:
     app: node
 
@@ -42,4 +43,3 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 8080
-  type: ClusterIP
