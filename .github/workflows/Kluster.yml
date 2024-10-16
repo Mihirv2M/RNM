@@ -48,9 +48,10 @@ jobs:
         kubectl apply -f react-secret.yaml -n kube-system
         kubectl apply -f node-secret.yaml -n kube-system
         
-    # - name: Delete Frontend
-    #   run: |
-    #     kubectl delete deployment react-deployment -n kube-system
+    - name: Delete Frontend
+      run: |
+        kubectl delete deployment react-deployment -n kube-system
+        kubectl delete service react-service -n kube-system
 
     - name: Deployment and Services
       run: | 
