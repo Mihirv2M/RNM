@@ -45,13 +45,13 @@ jobs:
     
     - name: Deploy Secrets
       run: |
-        kubectl apply -f react-secret.yaml -n kube-system
-        kubectl apply -f node-secret.yaml -n kube-system
+        kubectl apply -f react-secret.yaml 
+        kubectl apply -f node-secret.yaml 
         
     - name: Delete Frontend
       run: |
-        kubectl delete deployment react-deployment -n kube-system
-        kubectl delete service react-service -n kube-system
+        kubectl delete deployment react-deployment 
+        kubectl delete service react-service 
 
     - name: Deployment and Services
       run: | 
