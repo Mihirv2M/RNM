@@ -15,7 +15,7 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://server-1436468314.us-east-1.elb.amazonaws.com/health/demo', {
+      const response = await fetch('http://104.41.148.31:8080/health/demo', {
         method: 'POST',
         body: JSON.stringify(form),
         headers: {
@@ -36,7 +36,7 @@ function App() {
 
   const getUsers = async () => {
     try {
-      const response = await fetch('http://server-1436468314.us-east-1.elb.amazonaws.com/test', {
+      const response = await fetch('http://104.41.148.31:8080/test', {
         method: 'GET',
       });
       if (response.ok) {
