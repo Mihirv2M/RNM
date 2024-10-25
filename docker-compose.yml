@@ -9,8 +9,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./react-app:/react-app   
+    volumes: 
+      - react-app:/react-app   
     networks:
       - mongodb_network
 
@@ -24,11 +24,28 @@ services:
       - "8080:8080"
     networks:
       - mongodb_network
-      
+
+  # mongodb:
+  #   image: mongo:latest
+  #   container_name: mongodb
+  #   restart: always 
+  #   ports:
+  #     - "27017:27017"
+  #   environment:   
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: password   
+  #   volumes:
+  #     - mongodb:/data/db
+  #   networks: 
+  #     - mongodb_network
+
 volumes:
-  mongodb:
+  react-app:
+    name: react-app
     driver: local
     
 networks:
   mongodb_network:
-    external: true
+    name: mongodb_network
+# AKIA6GBMDF3T2UYLU3UO
+# Oa4Sz8NjT5P5H8MmLkTubGYQKCF6R06l1ujnlssI
